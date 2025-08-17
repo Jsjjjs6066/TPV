@@ -83,7 +83,7 @@ pub fn import_default_elements() {
                 rendered_content.push_str(&element.render(page, &(parent_size.0 - 2, parent_size.1 - 2)));
             }
 
-            let mut lines: u16 = 0;
+            let mut lines: u16 = 1;
 
             for char in rendered_content.chars() {
                 if (border.chars().count() + 1) % width == 0 {
@@ -112,9 +112,25 @@ pub fn import_default_elements() {
                 }
                 lines -= 1;
             }
+
+            if std::env::args().any(|arg| arg == "--log") {
+                let mut file = OpenOptions::new().append(true).open("log.txt").unwrap();
+                file.write(border.chars().count().to_string().as_ref()).expect("TODO: panic message");
+                file.write(b"\n").expect("TODO: panic message");
+                file.write(width.to_string().as_ref()).expect("TODO: panic message");
+                file.write(b"\n").expect("TODO: panic message");
+            }
+
+            if (border.chars().count() - 1) % width == 0 {
+                border.pop();
+                lines -= 1;
+            }
+
             if std::env::args().any(|arg| arg == "--log") {
                 let mut file = OpenOptions::new().append(true).open("log.txt").unwrap();
                 file.write(border.as_ref()).expect("TODO: panic message");
+                file.write(b"\n").expect("TODO: panic message");
+                file.write(width.to_string().as_ref()).expect("TODO: panic message");
                 file.write(b"\n").expect("TODO: panic message");
             }
 

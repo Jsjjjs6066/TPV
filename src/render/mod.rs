@@ -23,7 +23,7 @@ pub fn render_page(page: &mut Page) {
     if !std::env::args().any(|arg| arg == "--no-border") {
         print!("{}", Element::new(get_element("b").render_func, vec![json!([]), json!({"min-height": "max"})]).render(page, &(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1)));
     }
-    let body_content: String = render_elements(page, body, &(crossterm::terminal::size().unwrap_or((0, 0)).0 - 2, crossterm::terminal::size().unwrap_or((0, 0)).1 - 2));
+    let body_content: String = render_elements(page, body, &(crossterm::terminal::size().unwrap_or((0, 0)).0 - 2, crossterm::terminal::size().unwrap_or((0, 0)).1 - 3));
     stdout().execute(cursor::MoveTo(1, 1)).expect("");
 
     let mut line: u16 = 1;
