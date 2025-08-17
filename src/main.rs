@@ -19,7 +19,7 @@ fn main() {
 		std::process::exit(1);
 	});
 	let file_content: String = std::fs::read_to_string(filename).expect("Failed to read file");
-	let mut page: tprl::page::Page = parse::parse(&file_content);
+	let mut page: tprl::page::Page = parse::parse_str_to_page(&file_content);
 	let mut cursor: Cursor = Cursor::new();
 	if std::env::args().any(|arg| arg == "--auto-exit") {
 		render::render_page(&mut page);

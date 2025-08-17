@@ -1,10 +1,13 @@
+use std::fs::{File, OpenOptions};
 use std::io::{stdout, Write};
 use crossterm::{cursor, event, ExecutableCommand};
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
+use serde_json::json;
 use crate::action::Action;
 use crate::tprl::cursor::Cursor;
 use crate::tprl::element::{registry, Element};
+use crate::tprl::element::registry::get_element;
 use crate::tprl::page::Page;
 
 pub fn render_elements(page: &mut Page, elements: Vec<Element>, parent_size: &(u16, u16)) -> String {
@@ -17,7 +20,9 @@ pub fn render_elements(page: &mut Page, elements: Vec<Element>, parent_size: &(u
 
 pub fn render_page(page: &mut Page) {
     let body = page.body.clone();
-    print!("{}", registry::get_element("b").render(page, &(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1)));
+    if !std::env::args().any(|arg| arg == "--no-border") {
+        print!("{}", Element::new(get_element("b").render_func, vec![json!([]), json!({"min-height": "max"})]).render(page, &(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1)));
+    }
     let body_content: String = render_elements(page, body, &(crossterm::terminal::size().unwrap_or((0, 0)).0 - 2, crossterm::terminal::size().unwrap_or((0, 0)).1 - 2));
     stdout().execute(cursor::MoveTo(1, 1)).expect("");
 
@@ -41,6 +46,10 @@ pub fn render_page(page: &mut Page) {
     stdout().flush().expect("Failed to flush stdout");
 
     stdout().execute(cursor::SetCursorStyle::SteadyBlock).expect("");
+    if std::env::args().any(|arg| arg == "--log") {
+        let mut file: File = OpenOptions::new().append(true).open("log.txt").unwrap();
+        file.write(body_content.as_ref()).expect("TODO: panic message");
+    }
 }
 
 pub fn execute_page_tick(page: &mut Page, last_size: (u16, u16), cursor: &mut Cursor) -> Action {

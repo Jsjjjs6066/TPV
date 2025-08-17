@@ -1,6 +1,10 @@
 {
 	"title": "TPRL Element Module",
 	"body": [
-		["b", {}]
+		["b", [
+			["line"]
+		], {
+			"min-height": 2
+		}]
 	]
 }
