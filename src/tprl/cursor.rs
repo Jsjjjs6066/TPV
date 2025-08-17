@@ -24,7 +24,7 @@ impl Cursor {
     }
     pub fn move_down(&mut self, steps: u16) {
         if self.position.1 + steps >= crossterm::terminal::size().unwrap_or((0, 0)).1 {
-            self.position.1 = crossterm::terminal::size().unwrap_or((0, 0)).1;
+            self.position.1 = crossterm::terminal::size().unwrap_or((0, 0)).1 - 1;
         } else {
             self.position.1 += steps;
         }
@@ -39,7 +39,7 @@ impl Cursor {
     }
     pub fn move_right(&mut self, steps: u16) {
         if self.position.0 + steps >= crossterm::terminal::size().unwrap_or((0, 0)).0 {
-            self.position.0 = crossterm::terminal::size().unwrap_or((0, 0)).0;
+            self.position.0 = crossterm::terminal::size().unwrap_or((0, 0)).0 - 1;
         } else {
             self.position.0 += steps;
         }
