@@ -4,6 +4,7 @@ pub mod cursor;
 
 use std::fs::{File, OpenOptions};
 use std::io::Write;
+use figlet_rs::{FIGfont, FIGure};
 use crate::tprl::element::registry;
 use crate::tprl::element::Element;
 use serde_json::{json, Map, Value};
@@ -175,4 +176,13 @@ pub fn import_default_elements() {
         vec![],
     ));
     registry::add_alias("b".to_string(), "border");
+
+    registry::register_element("heading".to_string(), Element::new(
+        |_, args: Vec<Value>, _| {
+            let font: FIGfont = FIGfont::standard().unwrap();
+            font.convert("Ž").unwrap().to_string()
+        },
+        vec![Value::String("text".to_string()), Value::Number(1.into())]
+    ));
+    registry::add_alias("h".to_string(), "heading");
 }
