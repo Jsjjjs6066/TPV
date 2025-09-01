@@ -1,0 +1,13 @@
+use crate::tprl::{content::{AdjustXAxisOptions, Content, Text}, element::Element};
+use std::sync::LazyLock;
+
+pub static NONE: LazyLock<Element> = LazyLock::new(||
+	Element::new_default(
+        |_, _, _, _| Content::new(
+            vec![Text::new_default(String::new())], 
+            false, 
+            AdjustXAxisOptions::None,
+            (0, 0)
+        ), 
+    )
+);

@@ -1,0 +1,11 @@
+{
+	"title": "TPRL Element Module",
+	"body": [
+		["b", [
+		    ["h", "Title"],
+		    ["line", "-"]
+		], {
+		    "connect-to-horizontal-chars": true
+		}]
+	]
+}

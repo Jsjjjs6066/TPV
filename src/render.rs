@@ -7,44 +7,46 @@ use serde_json::json;
 use crate::action::Action;
 use crate::tprl::content::Content;
 use crate::tprl::cursor::Cursor;
-use crate::tprl::element::{registry, Element};
+use crate::tprl::element::{registry, Element, BORDER, GROUP};
 use crate::tprl::element::registry::get_element;
 use crate::tprl::page::Page;
 
 pub fn render_elements(page: &mut Page, elements: Vec<Element>, parent_size: &(u16, u16)) -> Vec<Content> {
     let mut rendered_content: Vec<Content> = Vec::new();
-    for element in elements {
-        rendered_content.push(element.render(page, parent_size));
+    for mut element in elements {
+        rendered_content.push(element.rerender(page, parent_size));
     }
     rendered_content
 }
 
 pub fn render_page(page: &mut Page) {
-    let body = page.body.clone();
-    if !std::env::args().any(|arg| arg == "--no-border") {
-        print!("{}", Element::new(get_element("b").render_func, vec![json!([]), json!({"min-height": "max"})]).render(page, &(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1)).text);
-    }
-    let body_content: Vec<Content> = render_elements(page, body, &(crossterm::terminal::size().unwrap_or((0, 0)).0 - 2, crossterm::terminal::size().unwrap_or((0, 0)).1 - 3));
-    stdout().execute(cursor::MoveTo(1, 1)).expect("");
+    let body: Vec<Element> = page.body.clone();
+    let mut b: Element = BORDER.new_from(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
+    print!("{}", b.render(page, &(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1)).render());
+    // let body_content: Vec<Content> = render_elements(page, body, &(crossterm::terminal::size().unwrap_or((0, 0)).0 - 2, crossterm::terminal::size().unwrap_or((0, 0)).1 - 3));
+    stdout().execute(cursor::MoveTo(0, 0)).expect("");
 
-    let mut line: u16 = 1;
-    let mut i: usize = 0;
-    for c in body_content {
-        for char in c.text.chars() {
-            if char == '\n' {
-                line += 1;
-                stdout().execute(cursor::MoveTo(1, line)).expect("");
-                i = 0;
-                continue;
-            }
-            if i % (crossterm::terminal::size().unwrap_or((0, 0)).0 - 2) as usize == 0 && i != 0 {
-                line += 1;
-                stdout().execute(cursor::MoveTo(1, line)).expect("");
-            }
-            write!(stdout(), "{}", char).expect("Failed to write character");
-            i += 1;
-        }
-    }
+    // let mut line: u16 = 1;
+    // let mut i: usize = 0;
+    // for c in body_content {
+    //     for char in c.text.chars() {
+    //         if char == '\u{1b}' {
+    //             write!(stdout(), "{}", char).expect("Failed to write character");
+    //         }
+    //         if char == '\n' {
+    //             line += 1;
+    //             stdout().execute(cursor::MoveTo(1, line)).expect("");
+    //             i = 0;
+    //             continue;
+    //         }
+    //         if i % (crossterm::terminal::size().unwrap_or((0, 0)).0 - 2) as usize == 0 && i != 0 {
+    //             line += 1;
+    //             stdout().execute(cursor::MoveTo(1, line)).expect("");
+    //         }
+    //         write!(stdout(), "{}", char).expect("Failed to write character");
+    //         i += 1;
+    //     }
+    // }
 
     stdout().flush().expect("Failed to flush stdout");
 

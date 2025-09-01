@@ -5,9 +5,9 @@ use crate::tprl::element::Element;
 static ELEMENT_REGISTRY: LazyLock<Mutex<HashMap<String, Element>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 	
 
-pub fn register_element(name: String, element: Element) {
+pub fn register_element(name: String, element: &Element) {
 	let mut registry = ELEMENT_REGISTRY.lock().unwrap();
-	registry.insert(name, element);
+	registry.insert(name, element.to_owned().clone());
 }
 
 pub fn get_element(name: &str) -> Element {
@@ -18,5 +18,5 @@ pub fn get_element(name: &str) -> Element {
 }
 
 pub fn add_alias(alias: String, target: &str) {
-	register_element(alias, get_element(target));
+	register_element(alias, &get_element(target));
 }

@@ -11,13 +11,13 @@ pub fn parse_json_to_page(json_page: Value) -> Page {
 		if let Some(arr) = element.as_array() {
 			if let Some(element_type) = arr.get(0).and_then(|v: &Value| v.as_str()) {
 				let args: Vec<Value> = arr[1..].to_vec();
-				let element_instance: Element = Element::new(registry::get_element(element_type).render_func, args);
+				let element_instance: Element = registry::get_element(element_type).new_from(args);
 				body.push(element_instance);
 			}
 		}
 	}
 
-	Page::new(title, body)
+	Page::new(title, body, json_page["body"].clone())
 }
 pub fn parse_str_to_page(input: &str) -> Page {
 	let json_page: Value = serde_json::from_str(input).unwrap();
@@ -31,7 +31,7 @@ pub fn parse_vec_to_vec(input: Vec<Value>) -> Vec<Element> {
 		if let Some(arr) = element.as_array() {
 			if let Some(element_type) = arr.get(0).and_then(|v: &Value| v.as_str()) {
 				let args: Vec<Value> = arr[1..].to_vec();
-				let element_instance: Element = Element::new(registry::get_element(element_type).render_func, args);
+				let element_instance: Element = registry::get_element(element_type).new_from(args);
 				body.push(element_instance);
 			}
 		}
