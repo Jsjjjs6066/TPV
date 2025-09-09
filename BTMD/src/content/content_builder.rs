@@ -1,6 +1,6 @@
 use crossterm::style::Color;
 
-use crate::tprl::content::{AdjustXAxisOptions, Content, Text};
+use crate::content::{AdjustXAxisOptions, Content, Text};
 
 pub struct ContentBuilder {
     pub content: Vec<Text>

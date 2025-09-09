@@ -1,9 +1,8 @@
 use std::{fs::OpenOptions, io::Write};
 
-use ansi_parser::{AnsiParser, Output};
 use serde_json::{Map, Value};
 
-use crate::{parse::parse_vec_to_vec, tprl::{content::{AdjustXAxisOptions, Content, ContentBuilder}, element::Element, page::Page}};
+use crate::{parse::parse_vec_to_vec, content::{AdjustXAxisOptions, Content, ContentBuilder}, element::Element, page::Page};
 
 use std::sync::LazyLock;
 use crossterm::style::{Color, SetForegroundColor};

@@ -1,15 +1,13 @@
-use std::fs::{File, OpenOptions};
 use std::io::{stdout, Write};
 use crossterm::{cursor, event, ExecutableCommand};
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use serde_json::json;
 use crate::action::Action;
-use crate::tprl::content::Content;
-use crate::tprl::cursor::Cursor;
-use crate::tprl::element::{registry, Element, BORDER, GROUP};
-use crate::tprl::element::registry::get_element;
-use crate::tprl::page::Page;
+use BTMD::content::Content;
+use BTMD::cursor::Cursor;
+use BTMD::element::{Element, BORDER, GROUP};
+use BTMD::page::Page;
 
 pub fn render_elements(page: &mut Page, elements: Vec<Element>, parent_size: &(u16, u16)) -> Vec<Content> {
     let mut rendered_content: Vec<Content> = Vec::new();

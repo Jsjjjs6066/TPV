@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::{LazyLock, Mutex}};
 
-use crate::tprl::element::Element;
+use crate::element::Element;
 
 static ELEMENT_REGISTRY: LazyLock<Mutex<HashMap<String, Element>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 	

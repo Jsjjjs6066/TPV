@@ -1,11 +1,16 @@
 {
-	"title": "TPRL Element Module",
+	"title": "BTMD Element Module",
 	"body": [
 		["b", [
-		    ["h", "Title"],
+		    ["h", "Very very long title"],
 		    ["line", "-"]
 		], {
-		    "connect-to-horizontal-chars": true
+		    "connect-to-horizontal-chars": true,
+			"color": "blue"
+		}],
+		["b", [], {
+			"min-height": 5,
+			"color": "yellow"
 		}]
 	]
 }

@@ -4,7 +4,7 @@ use figlet_rs::FIGfont;
 use serde_json::Value;
 use std::sync::LazyLock;
 
-use crate::tprl::{content::{AdjustXAxisOptions, Content, Text}, element::Element};
+use crate::{content::{AdjustXAxisOptions, Content, Text}, element::Element};
 
 pub static HEADING: LazyLock<Element> = LazyLock::new(||
     Element::new_default(
@@ -23,7 +23,7 @@ pub static HEADING: LazyLock<Element> = LazyLock::new(||
                     )
                 ],
                 false,
-                AdjustXAxisOptions::None,
+                AdjustXAxisOptions::AutoScroll,
                 (font.convert(
                     args.get(0)
                         .unwrap_or(&Value::String("".to_string())).

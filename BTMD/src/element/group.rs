@@ -1,11 +1,10 @@
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::sync::LazyLock;
-use crossterm::style::Color;
 use serde_json::{Map, Value};
 
-use crate::{parse::parse_vec_to_vec, render, tprl::{content::{AdjustXAxisOptions, Content}, element::{self, registry, Element}, page::Page}};
-use crate::tprl::content::ContentBuilder;
+use crate::{parse::parse_vec_to_vec, content::{AdjustXAxisOptions, Content}, element::{self, registry, Element}, page::Page};
+use crate::content::ContentBuilder;
 
 pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
     Element::new(

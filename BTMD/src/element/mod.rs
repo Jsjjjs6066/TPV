@@ -1,4 +1,4 @@
-use crate::tprl::{content::Content, page::Page};
+use crate::{content::Content, page::Page};
 pub mod registry;
 use serde_json::Value;
 

@@ -1,5 +1,5 @@
 use serde_json::Value;
-use crate::tprl::{element::{registry, Element}, page::Page};
+use crate::{element::{registry, Element}, page::Page};
 
 pub fn parse_json_to_page(json_page: Value) -> Page {
 	let title: String = json_page["title"].as_str().unwrap_or("Page").to_string();

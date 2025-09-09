@@ -1,6 +1,6 @@
 use serde_json::Value;
 
-use crate::tprl::element::Element;
+use crate::element::Element;
 
 #[derive(Clone)]
 pub struct Page {

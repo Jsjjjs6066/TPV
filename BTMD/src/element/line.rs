@@ -1,7 +1,7 @@
 use crossterm::style::ContentStyle;
 use serde_json::Value;
 
-use crate::tprl::{content::{AdjustXAxisOptions, Content, Text}, element::Element};
+use crate::{content::{AdjustXAxisOptions, Content, Text}, element::Element};
 
 use std::sync::LazyLock;
 

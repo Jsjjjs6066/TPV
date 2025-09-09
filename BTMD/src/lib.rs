@@ -2,8 +2,9 @@ pub mod element;
 pub mod page;
 pub mod cursor;
 pub mod content;
+pub mod parse;
 
-use crate::tprl::element::registry;
+use element::registry;
 
 pub fn import_default_elements() {
     registry::register_element("none".to_string(), &*element::NONE);

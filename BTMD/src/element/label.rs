@@ -3,7 +3,7 @@ use crossterm::style::Color;
 use serde_json::Value;
 use std::sync::LazyLock;
 
-use crate::tprl::{content::{AdjustXAxisOptions, Content, Text}, element::Element};
+use crate::{content::{AdjustXAxisOptions, Content, Text}, element::Element};
 
 pub static LABEL: LazyLock<Element> = LazyLock::new(|| {
     Element::new_default(
