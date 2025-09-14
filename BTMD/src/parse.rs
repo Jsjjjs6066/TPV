@@ -5,13 +5,13 @@ pub fn parse_json_to_page(json_page: Value) -> Page {
 	let title: String = json_page["title"].as_str().unwrap_or("Page").to_string();
 	let body_unparsed: Vec<Value> = json_page["body"].as_array().unwrap_or(&Vec::new()).to_vec();
 
-	let mut body: Vec<Element> = Vec::with_capacity(body_unparsed.len());
+	let mut body: Vec<Box<dyn Element>> = Vec::with_capacity(body_unparsed.len());
 
 	for element in body_unparsed {
 		if let Some(arr) = element.as_array() {
 			if let Some(element_type) = arr.get(0).and_then(|v: &Value| v.as_str()) {
 				let args: Vec<Value> = arr[1..].to_vec();
-				let element_instance: Element = registry::get_element(element_type).new_from(args);
+				let element_instance: Box<dyn Element> = Box::new(registry::get_element(element_type));
 				body.push(element_instance);
 			}
 		}

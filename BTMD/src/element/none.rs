@@ -1,13 +1,28 @@
 use crate::{content::{AdjustXAxisOptions, Content, Text}, element::Element};
-use std::sync::LazyLock;
+use serde_json::Value;
+use crate::page::Page;
 
-pub static NONE: LazyLock<Element> = LazyLock::new(||
-	Element::new_default(
-        |_, _, _, _| Content::new(
+pub struct None;
+
+impl Element for None {
+    fn new(args: Vec<Value>) -> Box<dyn Element> {
+        Box::new(None)
+    }
+
+    fn render(&mut self, page: &mut Page, parent_size: &(u16, u16)) -> Content {
+        Content::new(
             vec![Text::new_default(String::new())], 
             false, 
             AdjustXAxisOptions::None,
             (0, 0)
-        ), 
-    )
-);
+        )
+    }
+    fn rerender(&mut self, page: &mut Page, parent_size: &(u16, u16)) -> Content {
+        Content::new(
+            vec![Text::new_default(String::new())], 
+            false, 
+            AdjustXAxisOptions::None,
+            (0, 0)
+        )
+    }
+}
