@@ -24,11 +24,13 @@ pub use group::Group;
 //#[derive(Clone)]
 pub trait Element: Send + Sync {
     fn new(args: Vec<Value>) -> Box<dyn Element> where Self: Sized;
+    fn new_from(&mut self, args: Vec<Value>) -> Box<dyn Element> where Self: Sized;
     fn render(&mut self, page: &mut Page, parent_size: &(u16, u16)) -> Content;
     fn rerender(&mut self, page: &mut Page, parent_size: &(u16, u16)) -> Content;
-    fn clone_box(&self) -> Box<dyn Element + Send + Sync + 'static> {
-        todo!()
-    }
+    // fn clone_box(&self) -> Box<dyn Element + Send + Sync + 'static> {
+    //     panic!("clone_box not implemented for this Element");
+    // }
+    fn clone_this(&self) -> Self where Self: Sized;
 }
 
 impl<T> Element for T
@@ -47,20 +49,27 @@ where
         todo!()
     }
 
-    fn clone_box(&self) -> Box<dyn Element + Send + Sync + 'static> {
-        Box::new(self.clone())
+    // fn clone_box(&self) -> Box<dyn Element + Send + Sync + 'static> {
+    //     Box::new(self.clone())
+    // }
+    
+    fn new_from(&mut self, args: Vec<Value>) -> Box<dyn Element> where Self: Sized {
+        todo!()
+    }
+    fn clone_this(&self) -> Self where Self: Sized {
+        self.clone()
     }
 }
 
-impl Clone for Box<dyn Element + Send + Sync> {
-    fn clone(&self) -> Box<dyn Element + Send + Sync> {
-        self.clone_box()
-    }
-}
+// impl Clone for Box<dyn Element + Send + Sync> {
+//     fn clone(&self) -> Box<dyn Element + Send + Sync> {
+        
+//     }
+// }
 
 impl Clone for Box<dyn Element> {
     fn clone(&self) -> Box<dyn Element> {
-        self.clone_box()
+        self.to_owned().clone_this()
     }
 }
 

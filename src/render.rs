@@ -1,16 +1,16 @@
-use std::env::args;
-use std::io::{stdout, Write};
-use crossterm::{cursor, event, ExecutableCommand};
+use crate::action::Action;
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
+use crossterm::{cursor, event, ExecutableCommand};
 use serde_json::json;
-use crate::action::Action;
+use std::env::args;
+use std::io::{stdout, Write};
 use BTMD::content::Content;
 use BTMD::cursor::Cursor;
-use BTMD::element::{Element, BORDER, GROUP};
+use BTMD::element::{self, Border, Element, Group};
 use BTMD::page::Page;
 
-pub fn render_elements(page: &mut Page, elements: Vec<Element>, parent_size: &(u16, u16)) -> Vec<Content> {
+pub fn render_elements(page: &mut Page, elements: Vec<Box<dyn element::Element>>, parent_size: &(u16, u16)) -> Vec<Content> {
     let mut rendered_content: Vec<Content> = Vec::new();
     for mut element in elements {
         rendered_content.push(element.rerender(page, parent_size));
@@ -19,13 +19,14 @@ pub fn render_elements(page: &mut Page, elements: Vec<Element>, parent_size: &(u
 }
 
 pub fn render_page(page: &mut Page) {
-    let body: Vec<Element> = page.body.clone();
-    let mut b: Element;
+    let body: Vec<Box<dyn Element>> = page.body.clone();
+    let mut b: Box<dyn Element>;
+    dbg!(&page.body_raw);
     if args().any(|arg| arg == "--no-border") {
-        b = GROUP.new_from(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
+        b = Group::new(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
     }
     else {
-        b = BORDER.new_from(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
+        b = Border::new(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
     }
     print!("{}", b.render(page, &(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1)).render());
     // let body_content: Vec<Content> = render_elements(page, body, &(crossterm::terminal::size().unwrap_or((0, 0)).0 - 2, crossterm::terminal::size().unwrap_or((0, 0)).1 - 3));

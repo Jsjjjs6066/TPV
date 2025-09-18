@@ -29,6 +29,14 @@ impl Element for Label {
     fn rerender(&mut self, page: &mut Page, parent_size: &(u16, u16)) -> Content {
         self.render(page, parent_size)
     }
+    
+    fn new_from(&mut self, args: Vec<Value>) -> Box<dyn Element> where Self: Sized {
+        Box::new(Label{args})
+    }
+    
+    fn clone_this(&self) -> Self where Self: Sized {
+        Label {args: self.args.clone()}
+    }
 }
 
 // pub static LABEL: LazyLock<Element> = LazyLock::new(|| {

@@ -43,6 +43,14 @@ impl Element for Heading {
     fn rerender(&mut self, page: &mut Page, parent_size: &(u16, u16)) -> Content {
         self.render(page, parent_size)
     }
+    
+    fn new_from(&mut self, args: Vec<Value>) -> Box<dyn Element> where Self: Sized {
+        Box::new(Heading{args})
+    }
+    
+    fn clone_this(&self) -> Self where Self: Sized {
+        Heading {args: self.args.clone()}
+    }
 }
 
 // pub static HEADING: LazyLock<Element> = LazyLock::new(||

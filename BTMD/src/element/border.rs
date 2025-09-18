@@ -71,7 +71,7 @@ impl Element for Border {
         let mut file = OpenOptions::new().write(true).append(true).open("log.txt").unwrap();
         for mut element in body.iter_mut() {
             rendered_content.push(element.render(page, &(parent_size.0 - 2, parent_size.1 - 2)));
-            file.write( format!("{} {}\n", rendered_content.iter().last().unwrap().size.0, rendered_content.iter().last().unwrap().size.1).as_ref());
+            // file.write( format!("{} {}\n", rendered_content.iter().last().unwrap().size.0, rendered_content.iter().last().unwrap().size.1).as_ref());
         }
 
         let mut lines: u16 = 1;
@@ -167,6 +167,14 @@ impl Element for Border {
     }
     fn rerender(&mut self, page: &mut Page, parent_size: &(u16, u16)) -> Content {
         self.render(page, parent_size)
+    }
+    
+    fn new_from(&mut self, args: Vec<Value>) -> Box<dyn Element> where Self: Sized {
+        Box::new(Border{args, children: vec![]})
+    }
+    
+    fn clone_this(&self) -> Self where Self: Sized {
+        Border{args: self.args.clone(), children: vec![]}
     }
 }
 

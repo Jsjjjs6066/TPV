@@ -47,7 +47,7 @@ impl Element for Group {
 
         for mut element in body.iter_mut() {
             rendered_content.push((element).render(page, &(parent_size)));
-            file.write( format!("{} {}\n", rendered_content.iter().last().unwrap().size.0, rendered_content.iter().last().unwrap().size.1).as_ref());
+            // file.write( format!("{} {}\n", rendered_content.iter().last().unwrap().size.0, rendered_content.iter().last().unwrap().size.1).as_ref());
         }
 
         let mut lines: u16 = 1;
@@ -94,6 +94,14 @@ impl Element for Group {
     }
     fn rerender(&mut self, page: &mut Page, parent_size: &(u16, u16)) -> Content {
         self.render(page, parent_size)
+    }
+    
+    fn new_from(&mut self, args: Vec<Value>) -> Box<dyn Element> where Self: Sized {
+        Box::new(Group{args, children: vec![]})
+    }
+    
+    fn clone_this(&self) -> Self where Self: Sized {
+        Group { args: self.args.clone(), children: self.children.clone() }
     }
 }
 

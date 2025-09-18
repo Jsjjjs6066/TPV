@@ -24,14 +24,14 @@ pub fn parse_str_to_page(input: &str) -> Page {
 	parse_json_to_page(json_page)
 }
 
-pub fn parse_vec_to_vec(input: Vec<Value>) -> Vec<Element> {
-	let mut body: Vec<Element> = Vec::with_capacity(input.len());
+pub fn parse_vec_to_vec(input: Vec<Value>) -> Vec<Box<dyn Element>> {
+	let mut body: Vec<Box<dyn Element>> = Vec::with_capacity(input.len());
 
 	for element in input {
 		if let Some(arr) = element.as_array() {
 			if let Some(element_type) = arr.get(0).and_then(|v: &Value| v.as_str()) {
 				let args: Vec<Value> = arr[1..].to_vec();
-				let element_instance: Element = registry::get_element(element_type).new_from(args);
+				let element_instance: Box<dyn Element> = Box::new(registry::get_element(element_type).new_from(args));
 				body.push(element_instance);
 			}
 		}
@@ -39,7 +39,7 @@ pub fn parse_vec_to_vec(input: Vec<Value>) -> Vec<Element> {
 
 	body
 }
-pub fn parse_str_to_vec(input: &str) -> Vec<Element> {
+pub fn parse_str_to_vec(input: &str) -> Vec<Box<dyn Element>> {
 	let elements: Vec<Value> = serde_json::from_str(input).unwrap_or(Value::Array(vec![])).as_array().unwrap_or(&Vec::new()).to_vec();
 	parse_vec_to_vec(elements)
 }

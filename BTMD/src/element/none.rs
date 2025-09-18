@@ -25,4 +25,12 @@ impl Element for None {
             (0, 0)
         )
     }
+    
+    fn new_from(&mut self, args: Vec<Value>) -> Box<dyn Element> where Self: Sized {
+        Box::new(None)
+    }
+    
+    fn clone_this(&self) -> Self where Self: Sized {
+        None
+    }
 }
