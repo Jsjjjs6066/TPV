@@ -21,14 +21,14 @@ pub fn render_elements(page: &mut Page, elements: Vec<Box<dyn element::Element>>
 pub fn render_page(page: &mut Page) {
     let body: Vec<Box<dyn Element>> = page.body.clone();
     let mut b: Box<dyn Element>;
-    dbg!(&page.body_raw);
+    // dbg!(&page.body_raw);
     if args().any(|arg| arg == "--no-border") {
         b = Group::new(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
     }
     else {
         b = Border::new(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
     }
-    print!("{}", b.render(page, &(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1)).render());
+    print!("{}", (*b).render(page, &(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1)).render());
     // let body_content: Vec<Content> = render_elements(page, body, &(crossterm::terminal::size().unwrap_or((0, 0)).0 - 2, crossterm::terminal::size().unwrap_or((0, 0)).1 - 3));
     stdout().execute(cursor::MoveTo(0, 0)).expect("");
 

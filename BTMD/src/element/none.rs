@@ -30,7 +30,7 @@ impl Element for None {
         Box::new(None)
     }
     
-    fn clone_this(&self) -> Self where Self: Sized {
-        None
+    fn clone_this(&self) -> Box<dyn Element> {
+        Box::new(None)
     }
 }

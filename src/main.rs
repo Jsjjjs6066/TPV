@@ -2,7 +2,7 @@ use std::io::{stdout};
 use crossterm::ExecutableCommand;
 use crate::render::run_page;
 use BTMD::cursor::Cursor;
-use BTMD::import_default_elements;
+use BTMD::default_elements;
 
 mod render;
 mod action;
@@ -10,7 +10,6 @@ mod action;
 fn main() {
 	// println!("{}", SetForegroundColor(Color::DarkGreen).to_string().chars().count());
 	// println!("{}", SetForegroundColor(Color::Reset).to_string().chars().count());
-	import_default_elements();
 	if !std::env::args().any(|arg| arg == "--no-clear-on-run") {
 		clearscreen::clear().expect("");
 	}
@@ -19,7 +18,7 @@ fn main() {
 		std::process::exit(1);
 	});
 	let file_content: String = std::fs::read_to_string(filename).expect("Failed to read file");
-	let mut page: BTMD::page::Page = BTMD::parse::parse_str_to_page(&file_content);
+	let mut page: BTMD::page::Page = BTMD::parse::parse_str_to_page(&file_content, default_elements());
 	let mut cursor: Cursor = Cursor::new();
 	if std::env::args().any(|arg| arg == "--auto-exit") {
 		render::render_page(&mut page);

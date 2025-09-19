@@ -27,8 +27,8 @@ impl Element for NewLine {
         Box::new(NewLine{args})
     }
     
-    fn clone_this(&self) -> Self where Self: Sized {
-        NewLine {args: self.args.clone()}
+    fn clone_this(&self) -> Box<dyn Element> {
+        Box::new(NewLine {args: self.args.clone()})
     }
 }
 

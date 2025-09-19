@@ -30,7 +30,7 @@ pub trait Element: Send + Sync {
     // fn clone_box(&self) -> Box<dyn Element + Send + Sync + 'static> {
     //     panic!("clone_box not implemented for this Element");
     // }
-    fn clone_this(&self) -> Self where Self: Sized;
+    fn clone_this(&self) -> Box<dyn Element>;
 }
 
 impl<T> Element for T
@@ -56,8 +56,8 @@ where
     fn new_from(&mut self, args: Vec<Value>) -> Box<dyn Element> where Self: Sized {
         todo!()
     }
-    fn clone_this(&self) -> Self where Self: Sized {
-        self.clone()
+    fn clone_this(&self) -> Box<dyn Element> {
+        Box::new(self.clone())
     }
 }
 

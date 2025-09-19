@@ -48,8 +48,8 @@ impl Element for Heading {
         Box::new(Heading{args})
     }
     
-    fn clone_this(&self) -> Self where Self: Sized {
-        Heading {args: self.args.clone()}
+    fn clone_this(&self) -> Box<dyn Element> {
+        Box::new(Heading {args: self.args.clone()})
     }
 }
 

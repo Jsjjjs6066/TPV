@@ -2,7 +2,7 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use serde_json::{Map, Value};
 
-use crate::{content::{AdjustXAxisOptions, Content}, element::{has_children::HasChildren, Element}, page::Page, parse::parse_vec_to_vec};
+use crate::{content::{AdjustXAxisOptions, Content}, element::{has_children::HasChildren, Element}, page::{self, Page}, parse::parse_vec_to_vec};
 use crate::content::ContentBuilder;
 
 pub struct Group {
@@ -11,8 +11,8 @@ pub struct Group {
 }
 
 impl HasChildren for Group {
-    fn prepare_children(&mut self) {
-        self.children = parse_vec_to_vec((*self.args.get(0).unwrap_or(&Value::Array(vec![])).as_array().unwrap_or(&vec![])).clone());
+    fn prepare_children(&mut self, page: &mut Page) {
+        self.children = parse_vec_to_vec((*self.args.get(0).unwrap_or(&Value::Array(vec![])).as_array().unwrap_or(&vec![])).clone(), page.element_registry.clone());
     }
 
     fn get_children(&mut self) -> &mut Vec<Box<dyn Element>> {
@@ -100,8 +100,8 @@ impl Element for Group {
         Box::new(Group{args, children: vec![]})
     }
     
-    fn clone_this(&self) -> Self where Self: Sized {
-        Group { args: self.args.clone(), children: self.children.clone() }
+    fn clone_this(&self) -> Box<dyn Element> {
+        Box::new(Group { args: self.args.clone(), children: self.children.clone() })
     }
 }
 

@@ -29,8 +29,8 @@ impl Element for Paragraph {
         Box::new(Paragraph{args})
     }
     
-    fn clone_this(&self) -> Self where Self: Sized {
-        Paragraph {args: self.args.clone()}
+    fn clone_this(&self) -> Box<dyn Element> {
+        Box::new(Paragraph {args: self.args.clone()})
     }
 }
 

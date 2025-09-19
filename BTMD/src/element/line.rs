@@ -36,8 +36,8 @@ impl Element for Line {
         Box::new(Line{args})
     }
     
-    fn clone_this(&self) -> Self where Self: Sized {
-        Line {args: self.args.clone()}
+    fn clone_this(&self) -> Box<dyn Element> {
+        Box::new(Line {args: self.args.clone()})
     }
 }
 
