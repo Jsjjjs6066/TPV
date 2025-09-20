@@ -19,7 +19,7 @@ pub fn render_elements(page: &mut Page, elements: Vec<Element>, parent_size: &(u
 
 pub fn render_page(page: &mut Page) {
     let body: Vec<Element> = page.body.clone();
-    let mut b: Element = BORDER.new_from(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
+    let mut b: Element = GROUP.new_from(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
     print!("{}", b.render(page, &(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1)).render());
     // let body_content: Vec<Content> = render_elements(page, body, &(crossterm::terminal::size().unwrap_or((0, 0)).0 - 2, crossterm::terminal::size().unwrap_or((0, 0)).1 - 3));
     stdout().execute(cursor::MoveTo(0, 0)).expect("");

@@ -15,11 +15,11 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
                 default_config.insert(k.clone(), v.clone());
             }
 
-            let width: usize = parent_size.0 as usize;
+            let width: i32 = parent_size.0 as i32;
 
             let mut border_builder: ContentBuilder = ContentBuilder::new();
 
-            let mut i = 0;
+            let mut i: i32 = 0;
 
             let body_raw: Vec<Value> = args.get(0).unwrap_or(&Value::Array(vec![])).as_array().unwrap().to_vec();
 
@@ -40,20 +40,20 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
                     let mut temp: String = String::new();
                     for char in t.text.chars() {
                         if char == '\n' {
-                            temp.push_str(&*" ".repeat(width - (i - 1) % width));
+                            temp.push_str(&*" ".repeat((width - (i) % width) as usize));
                             i += width - (i - 1) % width;
                             border_builder.append_text(temp, t.foreground_color, t.background_color);
                             temp = String::new();
                             lines += 1;
                         }
-                        else if i % parent_size.0 as usize == 0 {
+                        else if i % parent_size.0 as i32 == 0 {
                             lines += 1;
                             i += 1;
                             temp.push(char);
                         }
                         else if char == '\t' {
-                            let spaces: usize = 4 - (i - 1) % 4;
-                            temp.push_str(&*" ".repeat(spaces));
+                            let spaces: i32 = 4 - (i - 1) % 4;
+                            temp.push_str(&*" ".repeat(spaces as usize));
                             i += spaces;
                         }
                         else {
@@ -69,7 +69,7 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
 
 
             if !(i % width == 0) {
-                border_builder.append_text_default((&*" ".repeat(width - i % width)).to_string());
+                border_builder.append_text_default((&*" ".repeat((width - i % width) as usize)).to_string());
             }
 
 
@@ -78,6 +78,6 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
         vec![],
         |args: &Vec<Value>| {
             parse_vec_to_vec((*args.get(0).unwrap_or(&Value::Array(vec![])).as_array().unwrap_or(&vec![])).clone())
-        }
+        }, "group".to_string()
     )
 });

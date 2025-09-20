@@ -19,6 +19,6 @@ pub static LABEL: LazyLock<Element> = LazyLock::new(|| {
                 AdjustXAxisOptions::None,
                 (min(text.chars().count() as u16, parent_size.0), text.lines().count() as u16),
             )
-        },
+        }, "label".to_string()
     )
 });

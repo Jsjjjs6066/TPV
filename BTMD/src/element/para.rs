@@ -15,6 +15,6 @@ pub static PARA: LazyLock<Element> = LazyLock::new(||
                 AdjustXAxisOptions::None,
                 (min(text.chars().count() as u16 - 1, parent_size.0), text.lines().count() as u16)
             )
-        },
+        }, "para".to_string()
     )
 );

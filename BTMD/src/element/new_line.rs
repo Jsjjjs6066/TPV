@@ -12,6 +12,6 @@ pub static NEW_LINE: LazyLock<Element> = LazyLock::new(||
                 AdjustXAxisOptions::None,
                 (0, 0)
             )
-        },
+        }, "new_line".to_string()
     )
 );

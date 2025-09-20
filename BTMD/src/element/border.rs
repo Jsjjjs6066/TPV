@@ -148,5 +148,5 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
         border_builder.build(true, AdjustXAxisOptions::None, (parent_size.0, lines + 2))
     }, vec![], |args: &Vec<Value>| {
         parse_vec_to_vec((*args.get(0).unwrap_or(&Value::Array(vec![])).as_array().unwrap_or(&vec![])).clone())
-    })
+    }, "border".to_string())
 });

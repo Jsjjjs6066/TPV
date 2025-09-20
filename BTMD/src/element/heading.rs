@@ -33,6 +33,6 @@ pub static HEADING: LazyLock<Element> = LazyLock::new(||
                         .unwrap_or(&Value::String("".to_string())).
                         as_str().unwrap()).unwrap().to_string().lines().count() as u16)
             )
-        },
+        }, "heading".to_string()
     )
 );

@@ -26,17 +26,18 @@ pub struct Element {
     args: Vec<Value>,
     pub children: Vec<Element>,
     prepare_children_func: fn(&Vec<Value>) -> Vec<Element>,
+    element_tag: String,
 }
 
 impl Element {
-    pub fn new(render_func: fn(holder: &mut Element, page: &mut Page, args: Vec<Value>, parent_size: &(u16, u16)) -> Content, args: Vec<Value>, prepare_children_function: fn(&Vec<Value>) -> Vec<Element>) -> Self {
-        Element {render_func, args, children: Vec::new(), prepare_children_func: prepare_children_function}
+    pub fn new(render_func: fn(holder: &mut Element, page: &mut Page, args: Vec<Value>, parent_size: &(u16, u16)) -> Content, args: Vec<Value>, prepare_children_function: fn(&Vec<Value>) -> Vec<Element>, element_tag: String) -> Self {
+        Element {render_func, args, children: Vec::new(), prepare_children_func: prepare_children_function, element_tag}
     }
-    pub fn new_default(render_func: fn(holder: &mut Element, page: &mut Page, args: Vec<Value>, parent_size: &(u16, u16)) -> Content) -> Self {
-        Element {render_func, args: Vec::new(), children: Vec::new(), prepare_children_func: |args: &Vec<Value>| -> Vec<Element> {return Vec::new()}}
+    pub fn new_default(render_func: fn(holder: &mut Element, page: &mut Page, args: Vec<Value>, parent_size: &(u16, u16)) -> Content, element_tag: String) -> Self {
+        Element {render_func, args: Vec::new(), children: Vec::new(), prepare_children_func: |args: &Vec<Value>| -> Vec<Element> {return Vec::new()}, element_tag}
     }
     pub fn new_from(&self, args: Vec<Value>) -> Self {
-        Element {render_func: self.render_func, args, children: Vec::new(), prepare_children_func: self.prepare_children_func}
+        Element {render_func: self.render_func, args, children: Vec::new(), prepare_children_func: self.prepare_children_func, element_tag: self.element_tag.clone()}
     }
 
     fn prepare_children(&mut self) {
