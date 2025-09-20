@@ -1,4 +1,4 @@
 pub enum Action {
-    None,
+    None(String),
     Exit,
 }
