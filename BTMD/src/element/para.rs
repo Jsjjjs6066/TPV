@@ -7,7 +7,7 @@ use std::sync::LazyLock;
 
 pub static PARA: LazyLock<Element> = LazyLock::new(|| 
     Element::new_default(
-        |_, _, args: Vec<Value>, parent_size: &(u16, u16)| {
+        |_, _, args: Vec<Value>, parent_size: &(u16, u16), _| {
             let text: String = args.get(0).unwrap_or(&Value::String("".to_string())).as_str().unwrap_or("").to_string() + if args.len() > 0 {"\n"} else {""};
             Content::new(
                 vec![Text::new_default(text.clone())],

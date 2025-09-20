@@ -8,7 +8,7 @@ use std::sync::LazyLock;
 use crossterm::style::{Color, SetForegroundColor};
 
 pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
-    Element::new(|holder: &mut Element, page: &mut Page, args: Vec<Value>, parent_size: &(u16, u16)| {
+    Element::new(|holder: &mut Element, page: &mut Page, args: Vec<Value>, parent_size: &(u16, u16), timer: &u32| {
         let mut default_config: Map<String, Value> = Map::new();
         default_config.insert("min-height".to_string(), Value::Number(0.into()));
         default_config.insert("connect-to-horizontal-chars".to_string(), Value::Bool(true));
@@ -50,10 +50,8 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
         let mut body: &Vec<Element> = &holder.children;
 
         let mut rendered_content: Vec<Content> = Vec::new();
-        let mut file = OpenOptions::new().write(true).append(true).open("log.txt").unwrap();
         for mut element in body {
-            rendered_content.push(element.to_owned().render(page, &(parent_size.0 - 2, parent_size.1 - 2)));
-            file.write( format!("{} {}\n", rendered_content.iter().last().unwrap().size.0, rendered_content.iter().last().unwrap().size.1).as_ref());
+            rendered_content.push(element.to_owned().render(page, &(parent_size.0 - 2, parent_size.1 - 2), timer));
         }
 
         let mut lines: u16 = 1;

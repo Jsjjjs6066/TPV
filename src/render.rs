@@ -9,18 +9,18 @@ use BTMD::cursor::Cursor;
 use BTMD::element::{Element, BORDER, GROUP};
 use BTMD::page::Page;
 
-pub fn render_elements(page: &mut Page, elements: Vec<Element>, parent_size: &(u16, u16)) -> Vec<Content> {
+pub fn render_elements(page: &mut Page, elements: Vec<Element>, parent_size: &(u16, u16), timer: &u32) -> Vec<Content> {
     let mut rendered_content: Vec<Content> = Vec::new();
     for mut element in elements {
-        rendered_content.push(element.rerender(page, parent_size));
+        rendered_content.push(element.rerender(page, parent_size, timer));
     }
     rendered_content
 }
 
-pub fn render_page(page: &mut Page) {
+pub fn render_page(page: &mut Page, timer: &u32) {
     let body: Vec<Element> = page.body.clone();
     let mut b: Element = GROUP.new_from(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
-    print!("{}", b.render(page, &(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1)).render());
+    print!("{}", b.render(page, &(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1), &0).render());
     // let body_content: Vec<Content> = render_elements(page, body, &(crossterm::terminal::size().unwrap_or((0, 0)).0 - 2, crossterm::terminal::size().unwrap_or((0, 0)).1 - 3));
     stdout().execute(cursor::MoveTo(0, 0)).expect("");
 
@@ -51,7 +51,7 @@ pub fn render_page(page: &mut Page) {
     stdout().execute(cursor::SetCursorStyle::SteadyBlock).expect("");
 }
 
-pub fn execute_page_tick(page: &mut Page, last_size: (u16, u16), cursor: &mut Cursor) -> Action {
+pub fn execute_page_tick(page: &mut Page, last_size: (u16, u16), cursor: &mut Cursor, timer: &u32) -> Action {
     enable_raw_mode().unwrap();
 
     if event::poll(std::time::Duration::from_millis(50)).unwrap() {
@@ -81,12 +81,10 @@ pub fn execute_page_tick(page: &mut Page, last_size: (u16, u16), cursor: &mut Cu
         }
     }
 
-    if crossterm::terminal::size().unwrap_or((0, 0)) != last_size {
-        disable_raw_mode().unwrap();
-        clearscreen::clear().expect("");
-        stdout().execute(cursor::MoveTo(0, 0)).expect("");
-        render_page(page);
-    }
+    disable_raw_mode().unwrap();
+    clearscreen::clear().expect("");
+    stdout().execute(cursor::MoveTo(0, 0)).expect("");
+    render_page(page, timer);
 
     Action::None
 }
@@ -106,10 +104,11 @@ pub fn run_page(page: &mut Page, cursor: &mut Cursor) {
         print!("{}", title_command);
         stdout().flush().unwrap(); // Ensure the command is sent to the terminal
     }
-    render_page(page);
+    render_page(page, &0);
     let mut last_size = crossterm::terminal::size().unwrap_or((0, 0));
+    let mut timer: u32 = 0;
     loop {
-        match execute_page_tick(page, last_size, cursor) {
+        match execute_page_tick(page, last_size, cursor, &timer) {
             Action::Exit => {
                 disable_raw_mode().unwrap();
                 return;
@@ -117,5 +116,7 @@ pub fn run_page(page: &mut Page, cursor: &mut Cursor) {
             Action::None => {}
         }
         last_size = crossterm::terminal::size().unwrap_or((0, 0));
+        std::thread::sleep(std::time::Duration::from_millis(50));
+        timer += 1;
     }
 }

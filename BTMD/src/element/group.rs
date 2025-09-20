@@ -3,12 +3,12 @@ use std::io::Write;
 use std::sync::LazyLock;
 use serde_json::{Map, Value};
 
-use crate::{parse::parse_vec_to_vec, content::{AdjustXAxisOptions, Content}, element::{self, registry, Element}, page::Page};
+use crate::{parse::parse_vec_to_vec, content::{AdjustXAxisOptions, Content}, element::Element, page::Page};
 use crate::content::ContentBuilder;
 
 pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
     Element::new(
-        |holder: &mut Element, page: &mut Page, args: Vec<Value>, parent_size: &(u16, u16)| {
+        |holder: &mut Element, page: &mut Page, args: Vec<Value>, parent_size: &(u16, u16), timer: &u32| {
             let mut default_config: Map<String, Value> = Map::new();
             let config: Map<String, Value> = args.get(1).unwrap_or(&Value::Object(Map::new())).as_object().unwrap_or(&default_config).iter().map(|(k, v)| (k.clone(), v.clone())).collect();
             for (k, v) in config.iter() {
@@ -26,11 +26,9 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
             let mut body: Vec<Element> = parse_vec_to_vec(body_raw);
 
             let mut rendered_content: Vec<Content> = Vec::new();
-            let mut file = OpenOptions::new().write(true).append(true).open("log.txt").unwrap();
 
             for mut element in &holder.children {
-                rendered_content.push(element.to_owned().render(page, &(parent_size)));
-                file.write( format!("{} {}\n", rendered_content.iter().last().unwrap().size.0, rendered_content.iter().last().unwrap().size.1).as_ref());
+                rendered_content.push(element.to_owned().render(page, &(parent_size), timer));
             }
 
             let mut lines: u16 = 1;

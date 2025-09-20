@@ -1,4 +1,3 @@
-use std::cmp::min;
 use crossterm::style::Color;
 use figlet_rs::FIGfont;
 use serde_json::Value;
@@ -8,7 +7,7 @@ use crate::{content::{AdjustXAxisOptions, Content, Text}, element::Element};
 
 pub static HEADING: LazyLock<Element> = LazyLock::new(||
     Element::new_default(
-        |_, _, args: Vec<Value>, parent_size: &(u16, u16)| {
+        |_, _, args: Vec<Value>, parent_size: &(u16, u16), timer: &u32| {
             let font: FIGfont = FIGfont::standard().unwrap();
             
             Content::new(

@@ -7,7 +7,7 @@ use crate::{content::{AdjustXAxisOptions, Content, Text}, element::Element};
 
 pub static LABEL: LazyLock<Element> = LazyLock::new(|| {
     Element::new_default(
-        |_, _, args: Vec<Value>, parent_size: &(u16, u16)| -> Content {
+        |_, _, args: Vec<Value>, parent_size: &(u16, u16), _| -> Content {
             let text: String = args.get(0).unwrap_or(&Value::String("".to_string())).as_str().unwrap_or("").to_string();
             Content::new(
                 vec![Text::new(
