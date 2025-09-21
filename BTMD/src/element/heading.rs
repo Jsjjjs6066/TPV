@@ -14,7 +14,7 @@ pub static HEADING: LazyLock<Element> = LazyLock::new(||
                         .unwrap_or(&Value::String("".to_string())).
                         as_str().unwrap()).unwrap().to_string();
             let returned_heading: String = heading.lines().map(|line| {
-                line[(timer / 5 % (parent_size.0 as u32)) as usize..(min(line.len(), (timer / 5 % (parent_size.0 as u32) + (parent_size.0 as u32)) as usize))].to_string()
+                line[(timer / 5 % (line.len() as u32)) as usize..(min(line.len(), (timer / 5 % (parent_size.0 as u32) + (parent_size.0 as u32)) as usize))].to_string()
             }).collect::<Vec<String>>().join("\n") + "\n";
             
             Content::new(
