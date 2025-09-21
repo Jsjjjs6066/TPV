@@ -66,7 +66,7 @@ fn rerender_page(page: &mut Page, timer: &u32, last_text: &String) -> String {
 pub fn execute_page_tick(page: &mut Page, last_size: (u16, u16), cursor: &mut Cursor, timer: &u32, last_text: &String) -> Action {
     enable_raw_mode().unwrap();
 
-    if event::poll(std::time::Duration::from_millis(50)).unwrap() {
+    if event::poll(std::time::Duration::from_millis(5)).unwrap() {
         if let Event::Key(KeyEvent { code, kind, .. }) = event::read().unwrap() {
             // Check if the key event is a press (key-down event)
             if kind == event::KeyEventKind::Press {
@@ -127,7 +127,7 @@ pub fn run_page(page: &mut Page, cursor: &mut Cursor) {
             }
         }
         last_size = crossterm::terminal::size().unwrap_or((0, 0));
-        std::thread::sleep(std::time::Duration::from_millis(10));
+        std::thread::sleep(std::time::Duration::from_millis(5));
         timer += 1;
     }
 }
