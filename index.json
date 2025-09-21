@@ -3,6 +3,8 @@
 	"body": [
 		["b", [
 		    ["h", "Very very long title"],
+			["h", "Other long title"],
+			["h", "Short title"],
 		    ["line", "-"]
 		], {
 		    "connect-to-horizontal-chars": true,

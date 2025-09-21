@@ -78,7 +78,7 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
                         border_builder.content.last_mut().unwrap().text.push('├');
                     }
                     if char == '\n' {
-                        if i %width != 0 {
+                        if i % width != 1 {
                             temp.push_str(&*" ".repeat(width - 2 - (i - 1) % width));
                             i += width - 2 - (i - 1) % width;
                             border_builder.append_text(temp, t.foreground_color, t.background_color);
