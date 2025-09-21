@@ -3,7 +3,7 @@ use crossterm::style::Color;
 use serde_json::Value;
 use std::sync::LazyLock;
 
-use crate::{content::{AdjustXAxisOptions, Content, Text}, element::Element};
+use crate::{content::{Content, Text}, element::Element};
 
 pub static LABEL: LazyLock<Element> = LazyLock::new(|| {
     Element::new_default(
@@ -16,7 +16,6 @@ pub static LABEL: LazyLock<Element> = LazyLock::new(|| {
                     Color::Reset,
                 )],
                 false,
-                AdjustXAxisOptions::None,
                 (min(text.chars().count() as u16, parent_size.0), text.lines().count() as u16),
             )
         }, "label".to_string()

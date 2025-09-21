@@ -1,9 +1,7 @@
-use std::fs::OpenOptions;
-use std::io::Write;
 use std::sync::LazyLock;
 use serde_json::{Map, Value};
 
-use crate::{parse::parse_vec_to_vec, content::{AdjustXAxisOptions, Content}, element::Element, page::Page};
+use crate::{parse::parse_vec_to_vec, content::Content, element::Element, page::Page};
 use crate::content::ContentBuilder;
 
 pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
@@ -71,7 +69,7 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
             }
 
 
-            border_builder.build(true, AdjustXAxisOptions::None, (parent_size.0, lines))
+            border_builder.build(true, (parent_size.0, lines))
         },
         vec![],
         |args: &Vec<Value>| {

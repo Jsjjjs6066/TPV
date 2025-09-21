@@ -20,7 +20,7 @@ pub fn render_elements(page: &mut Page, elements: Vec<Element>, parent_size: &(u
 
 pub fn render_page(page: &mut Page, timer: &u32) -> String {
     let mut b: Element = GROUP.new_from(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
-    let rendered: String = b.render(page, &(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1), timer).render();
+    let rendered: String = b.render(page, &(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1), timer).render(&(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1));
     print!("{}", rendered);
     // let body_content: Vec<Content> = render_elements(page, body, &(crossterm::terminal::size().unwrap_or((0, 0)).0 - 2, crossterm::terminal::size().unwrap_or((0, 0)).1 - 3));
     stdout().execute(cursor::MoveTo(0, 0)).expect("");
@@ -54,7 +54,7 @@ pub fn render_page(page: &mut Page, timer: &u32) -> String {
 }
 fn rerender_page(page: &mut Page, timer: &u32, last_text: &String) -> String {
     let mut b: Element = GROUP.new_from(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
-    let rendered: String = b.render(page, &(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1), timer).render();
+    let rendered: String = b.render(page, &(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1), timer).render(&(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1));
     if rendered == *last_text {
         return rendered;
     }

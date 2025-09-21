@@ -1,7 +1,7 @@
 use std::cmp::min;
 use serde_json::Value;
 
-use crate::{content::{AdjustXAxisOptions, Content, Text}, element::Element};
+use crate::{content::{Content, Text}, element::Element};
 
 use std::sync::LazyLock;
 
@@ -12,7 +12,6 @@ pub static PARA: LazyLock<Element> = LazyLock::new(||
             Content::new(
                 vec![Text::new_default(text.clone())],
                 false,
-                AdjustXAxisOptions::None,
                 (min(text.chars().count() as u16 - 1, parent_size.0), text.lines().count() as u16)
             )
         }, "para".to_string()

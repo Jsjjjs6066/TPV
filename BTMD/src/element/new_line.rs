@@ -1,7 +1,7 @@
 use serde_json::Value;
 use std::sync::LazyLock;
 
-use crate::{content::{AdjustXAxisOptions, Content, Text}, element::Element};
+use crate::{content::{Content, Text}, element::Element};
 
 pub static NEW_LINE: LazyLock<Element> = LazyLock::new(||
     Element::new_default(
@@ -9,7 +9,6 @@ pub static NEW_LINE: LazyLock<Element> = LazyLock::new(||
             Content::new(
                 vec![Text::new_default("\n".to_string())],
                 false,
-                AdjustXAxisOptions::None,
                 (0, 0)
             )
         }, "new_line".to_string()
