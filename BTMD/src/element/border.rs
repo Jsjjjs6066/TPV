@@ -78,13 +78,15 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
                         border_builder.content.last_mut().unwrap().text.push('├');
                     }
                     if char == '\n' {
-                        temp.push_str(&*" ".repeat(width - 2 - (i - 1) % width));
-                        i += width - 2 - (i - 1) % width;
-                        border_builder.append_text(temp, t.foreground_color, t.background_color);
-                        border_builder.append_text(vertical_char.to_string() + vertical_char.to_string().as_str(), color_prefix, Color::Reset);
-                        temp = String::new();
-                        i += 2;
-                        lines += 1;
+                        if i %width != 0 {
+                            temp.push_str(&*" ".repeat(width - 2 - (i - 1) % width));
+                            i += width - 2 - (i - 1) % width;
+                            border_builder.append_text(temp, t.foreground_color, t.background_color);
+                            border_builder.append_text(vertical_char.to_string() + vertical_char.to_string().as_str(), color_prefix, Color::Reset);
+                            temp = String::new();
+                            i += 2;
+                            lines += 1;
+                        }
                     } else if char == '\t' {
                         let spaces: usize = 4 - (i - 1) % 4;
                         temp.push_str(&*" ".repeat(spaces));

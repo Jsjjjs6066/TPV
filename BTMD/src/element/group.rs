@@ -36,11 +36,13 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
                     let mut temp: String = String::new();
                     for char in t.text.chars() {
                         if char == '\n' {
-                            temp.push_str(&*" ".repeat((width - (i) % width) as usize));
-                            i += width - (i - 1) % width;
-                            border_builder.append_text(temp, t.foreground_color, t.background_color);
-                            temp = String::new();
-                            lines += 1;
+                            if i % parent_size.0 as i32 != 0 {
+                                temp.push_str(&*" ".repeat((width - (i) % width) as usize));
+                                i += width - (i - 1) % width;
+                                border_builder.append_text(temp, t.foreground_color, t.background_color);
+                                temp = String::new();
+                                lines += 1;
+                            }
                         }
                         else if i % parent_size.0 as i32 == 0 {
                             lines += 1;
