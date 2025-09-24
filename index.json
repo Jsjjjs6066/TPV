@@ -2,7 +2,13 @@
 	"title": "BTMD Element Module",
 	"body": [
 		["b", [
-		    ["h", "Very very long title"],
+		    ["h", "Very very long title", {
+          "speed": 11
+        }],
+			["h", "Other long title", {
+        "speed": -1
+      }],
+			["h", "Short title"],
 		    ["line", "-"]
 		], {
 		    "connect-to-horizontal-chars": true,

@@ -2,7 +2,7 @@ use std::{fs::OpenOptions, io::Write};
 
 use serde_json::{Map, Value};
 
-use crate::{parse::parse_vec_to_vec, content::{AdjustXAxisOptions, Content, ContentBuilder}, element::Element, page::Page};
+use crate::{parse::parse_vec_to_vec, content::{Content, ContentBuilder}, element::Element, page::Page};
 
 use std::sync::LazyLock;
 use crossterm::style::{Color, SetForegroundColor};
@@ -78,13 +78,15 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
                         border_builder.content.last_mut().unwrap().text.push('├');
                     }
                     if char == '\n' {
-                        temp.push_str(&*" ".repeat(width - 2 - (i - 1) % width));
-                        i += width - 2 - (i - 1) % width;
-                        border_builder.append_text(temp, t.foreground_color, t.background_color);
-                        border_builder.append_text(vertical_char.to_string() + vertical_char.to_string().as_str(), color_prefix, Color::Reset);
-                        temp = String::new();
-                        i += 2;
-                        lines += 1;
+                        if i % width != 1 {
+                            temp.push_str(&*" ".repeat(width - 2 - (i - 1) % width));
+                            i += width - 2 - (i - 1) % width;
+                            border_builder.append_text(temp, t.foreground_color, t.background_color);
+                            border_builder.append_text(vertical_char.to_string() + vertical_char.to_string().as_str(), color_prefix, Color::Reset);
+                            temp = String::new();
+                            i += 2;
+                            lines += 1;
+                        }
                     } else if char == '\t' {
                         let spaces: usize = 4 - (i - 1) % 4;
                         temp.push_str(&*" ".repeat(spaces));
@@ -143,7 +145,7 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
         border_builder.append_text(bottom_left.to_string() + &horizontal_char.to_string().repeat(width - 2) + bottom_right.to_string().as_str(), color_prefix, Color::Reset);
         border.push_str(&horizontal_char.to_string().repeat(width - 2));
         border.push(bottom_right);
-        border_builder.build(true, AdjustXAxisOptions::None, (parent_size.0, lines + 2))
+        border_builder.build(true, (parent_size.0, lines + 2))
     }, vec![], |args: &Vec<Value>| {
         parse_vec_to_vec((*args.get(0).unwrap_or(&Value::Array(vec![])).as_array().unwrap_or(&vec![])).clone())
     }, "border".to_string())

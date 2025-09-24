@@ -1,9 +1,7 @@
-use std::fs::OpenOptions;
-use std::io::Write;
 use std::sync::LazyLock;
 use serde_json::{Map, Value};
 
-use crate::{parse::parse_vec_to_vec, content::{AdjustXAxisOptions, Content}, element::Element, page::Page};
+use crate::{parse::parse_vec_to_vec, content::Content, element::Element, page::Page};
 use crate::content::ContentBuilder;
 
 pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
@@ -38,11 +36,13 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
                     let mut temp: String = String::new();
                     for char in t.text.chars() {
                         if char == '\n' {
-                            temp.push_str(&*" ".repeat((width - (i) % width) as usize));
-                            i += width - (i - 1) % width;
-                            border_builder.append_text(temp, t.foreground_color, t.background_color);
-                            temp = String::new();
-                            lines += 1;
+                            if i % parent_size.0 as i32 != 0 {
+                                temp.push_str(&*" ".repeat((width - (i) % width) as usize));
+                                i += width - (i - 1) % width;
+                                border_builder.append_text(temp, t.foreground_color, t.background_color);
+                                temp = String::new();
+                                lines += 1;
+                            }
                         }
                         else if i % parent_size.0 as i32 == 0 {
                             lines += 1;
@@ -71,7 +71,7 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
             }
 
 
-            border_builder.build(true, AdjustXAxisOptions::None, (parent_size.0, lines))
+            border_builder.build(true, (parent_size.0, lines))
         },
         vec![],
         |args: &Vec<Value>| {

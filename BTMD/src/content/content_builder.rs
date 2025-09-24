@@ -1,6 +1,6 @@
 use crossterm::style::Color;
 
-use crate::content::{AdjustXAxisOptions, Content, Text};
+use crate::content::{Content, Text};
 
 pub struct ContentBuilder {
     pub content: Vec<Text>
@@ -18,11 +18,10 @@ impl ContentBuilder {
         self.content.push(Text::new_default(text))
     }
 
-    pub fn build(self, rerender_needed: bool, adjust_x_axis_options: AdjustXAxisOptions, size: (u16, u16)) -> Content {
+    pub fn build(self, rerender_needed: bool, size: (u16, u16)) -> Content {
         Content {
             text: self.content,
             rerender_needed: rerender_needed,
-            adjust_x_axis: adjust_x_axis_options,
             size,
         }
     }
