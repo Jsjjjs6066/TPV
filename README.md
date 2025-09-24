@@ -1,8 +1,7 @@
 # TPV
-TPV or Terminal page viewer a terminal application written in [Rust](www.rust-lang.org) for rendering and using [BTMD](github.com/Jsjjjs6066/BTMD).
+TPV or Terminal page viewer a terminal application written in [Rust](https://www.rust-lang.org) for rendering and using [BTMD](https://github.com/Jsjjjs6066/BTMD).
 
 # Usage
-------
 ## View a page
 ``` bash
 path/to/tpv <path-to-a-btmd-file>
@@ -18,4 +17,4 @@ path/to/tpv <path-to-a-btmd-file>
 You can move the cursor by pressing up, down, left and right arrow keys to change the cursor's position by one in the corresponding direction.
 
 # Making a page
-If you want to make your own page, check out [BTMD](github.com/Jsjjjs6066/BTMD).
+If you want to make your own page, check out [BTMD](https://github.com/Jsjjjs6066/BTMD).
