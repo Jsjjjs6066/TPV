@@ -4,10 +4,9 @@ use crossterm::event::{Event, KeyCode, KeyEvent};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use serde_json::json;
 use crate::action::Action;
-use crate::render;
 use BTMD::content::Content;
 use BTMD::cursor::Cursor;
-use BTMD::element::{Element, BORDER, GROUP};
+use BTMD::element::{Element, GROUP};
 use BTMD::page::Page;
 
 pub fn render_elements(page: &mut Page, elements: Vec<Element>, parent_size: &(u16, u16), timer: &u32) -> Vec<Content> {
@@ -22,8 +21,10 @@ pub fn render_page(page: &mut Page, timer: &u32) -> String {
     let mut b: Element = GROUP.new_from(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
     let rendered: String = b.render(page, &(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1), timer).render(&(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1));
     print!("{}", rendered);
+    page.cursor.position.0 = crossterm::terminal::size().unwrap_or((0, 0)).0 / 2;
+    page.cursor.position.1 = crossterm::terminal::size().unwrap_or((0, 0)).1 / 2;
     // let body_content: Vec<Content> = render_elements(page, body, &(crossterm::terminal::size().unwrap_or((0, 0)).0 - 2, crossterm::terminal::size().unwrap_or((0, 0)).1 - 3));
-    stdout().execute(cursor::MoveTo(0, 0)).expect("");
+    stdout().execute(cursor::MoveTo(crossterm::terminal::size().unwrap_or((0, 0)).0 / 2, crossterm::terminal::size().unwrap_or((0, 0)).1 / 2)).expect("");
 
     // let mut line: u16 = 1;
     // let mut i: usize = 0;
@@ -60,10 +61,11 @@ fn rerender_page(page: &mut Page, timer: &u32, last_text: &String) -> String {
     }
     clearscreen::clear().expect("");
     print!("{}", rendered);
+    stdout().execute(cursor::MoveTo(page.cursor.position.0, page.cursor.position.1)).expect("");
     rendered
 }
 
-pub fn execute_page_tick(page: &mut Page, last_size: (u16, u16), cursor: &mut Cursor, timer: &u32, last_text: &String) -> Action {
+pub fn execute_page_tick(page: &mut Page, last_size: (u16, u16), timer: &u32, last_text: &String) -> Action {
     enable_raw_mode().unwrap();
 
     if event::poll(std::time::Duration::from_millis(5)).unwrap() {
@@ -75,20 +77,20 @@ pub fn execute_page_tick(page: &mut Page, last_size: (u16, u16), cursor: &mut Cu
                         return Action::Exit
                     }
                     KeyCode::Down => {
-                        cursor.move_down(1);
+                        page.cursor.move_down(1);
                     }
                     KeyCode::Up => {
-                        cursor.move_up(1);
+                        page.cursor.move_up(1);
                     }
                     KeyCode::Left => {
-                        cursor.move_left(1);
+                        page.cursor.move_left(1);
                     }
                     KeyCode::Right => {
-                        cursor.move_right(1);
+                        page.cursor.move_right(1);
                     }
                     _ => {}
                 }
-                stdout().execute(cursor::MoveTo(cursor.position.0, cursor.position.1)).expect("");
+                stdout().execute(cursor::MoveTo(page.cursor.position.0, page.cursor.position.1)).expect("");
             }
         }
     }
@@ -98,7 +100,7 @@ pub fn execute_page_tick(page: &mut Page, last_size: (u16, u16), cursor: &mut Cu
     Action::None(rerendered)
 }
 
-pub fn run_page(page: &mut Page, cursor: &mut Cursor) {
+pub fn run_page(page: &mut Page) {
     #[cfg(target_os = "windows")]
     {
         let title_command = format!("title {}", page.title.clone());
@@ -117,7 +119,7 @@ pub fn run_page(page: &mut Page, cursor: &mut Cursor) {
     let mut last_size = crossterm::terminal::size().unwrap_or((0, 0));
     let mut timer: u32 = 0;
     loop {
-        match execute_page_tick(page, last_size, cursor, &timer, &last_text) {
+        match execute_page_tick(page, last_size, &timer, &last_text) {
             Action::Exit => {
                 disable_raw_mode().unwrap();
                 return;

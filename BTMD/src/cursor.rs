@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct Cursor {
     pub position: (u16, u16),
 }
