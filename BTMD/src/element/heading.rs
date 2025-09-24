@@ -1,6 +1,8 @@
+use std::{cmp::{max, min}, fs::OpenOptions, io::Write};
+
 use crossterm::style::Color;
 use figlet_rs::FIGfont;
-use serde_json::Value;
+use serde_json::{Number, Value, Map};
 use {std::sync::LazyLock, usize};
 
 use crate::{
@@ -21,6 +23,14 @@ pub static HEADING: LazyLock<Element> = LazyLock::new(|| {
                 )
                 .unwrap()
                 .to_string();
+            let speed: u8 = 11 - max(1, min(10, args.get(1).unwrap_or(&Value::Object(Map::new())).get("speed").unwrap_or(&Number::from(7).into()).as_i64().unwrap_or(7))) as u8;
+            // let mut file = OpenOptions::new()
+            //     .write(true)
+            //     .append(true)
+            //     .read(true)
+            //     .open("log.txt")
+            //     .unwrap();
+            // file.write_all((speed.to_string() + "\n").as_bytes());
 
             let mut width: u16 = heading.lines().max_by(|a, b| a.len().cmp(&b.len())).unwrap_or("").chars().count() as u16;
             let height: u16 = heading.lines().count() as u16;
@@ -30,7 +40,7 @@ pub static HEADING: LazyLock<Element> = LazyLock::new(|| {
                 new_heading.lines().map(|s| {
                     let mut temp: String = String::new();
                         for i in 0..parent_size.0 {
-                            temp.push(s.chars().nth((i as u32 + (timer / 4) % (width - parent_size.0 / 2) as u32) as usize).unwrap_or(' '));
+                            temp.push(s.chars().nth((i as u32 + (timer / speed as u32) % (width - parent_size.0 / 2) as u32) as usize).unwrap_or(' '));
                         }
                     temp
                 }).collect::<Vec<String>>().join("\n") + "\n"
