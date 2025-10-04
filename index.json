@@ -13,11 +13,6 @@
 		], {
 		    "connect-to-horizontal-chars": true,
 			"color": "blue"
-		}],
-		["p", "Test"],
-		["b", [], {
-			"min-height": 5,
-			"color": "yellow"
 		}]
 	]
 }

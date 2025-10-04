@@ -1,5 +1,7 @@
 use std::io::{stdout, Write};
-use crossterm::{cursor, event, ExecutableCommand};
+use clearscreen::clear;
+use crossterm::style::Print;
+use crossterm::{cursor, event, ExecutableCommand, QueueableCommand};
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use serde_json::json;
@@ -58,9 +60,15 @@ fn rerender_page(page: &mut Page, timer: &u32, last_text: &String) -> String {
     if rendered == *last_text {
         return rendered;
     }
-    clearscreen::clear().expect("");
-    print!("{}", rendered);
-    stdout().execute(cursor::MoveTo(page.cursor.position.0, page.cursor.position.1)).expect("");
+    stdout().queue(crossterm::terminal::Clear(crossterm::terminal::ClearType::All));
+    stdout().queue(cursor::Hide);
+    stdout().queue(cursor::MoveTo(0, 0));
+    // clearscreen::clear().expect("");
+    // print!("{}", rendered);
+    stdout().queue(Print(rendered.as_str()));
+    stdout().queue(cursor::MoveTo(page.cursor.position.0, page.cursor.position.1 / 2)).expect("");
+    stdout().queue(cursor::Show);
+    stdout().flush();
     rendered
 }
 
@@ -88,7 +96,7 @@ pub fn execute_page_tick(page: &mut Page, last_size: (u16, u16), timer: &u32, la
                 }
                 _ => {}
             }
-            stdout().execute(cursor::MoveTo(page.cursor.position.0, page.cursor.position.1)).expect("");
+            stdout().execute(cursor::MoveTo(page.cursor.position.0, page.cursor.position.1 / 2)).expect("");
         }
     }
 
