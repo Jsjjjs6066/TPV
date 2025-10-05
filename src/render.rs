@@ -75,28 +75,36 @@ fn rerender_page(page: &mut Page, timer: &u32, last_text: &String) -> String {
 pub fn execute_page_tick(page: &mut Page, last_size: (u16, u16), timer: &u32, last_text: &String) -> Action {
     enable_raw_mode().unwrap();
 
-    if event::poll(std::time::Duration::from_millis(5)).unwrap() && let Event::Key(KeyEvent { code, kind, .. }) = event::read().unwrap() {
+    
+    if event::poll(std::time::Duration::from_millis(5)).unwrap() {
+        if let Event::Key(KeyEvent { code, kind, .. }) = event::read().unwrap() {
             // Check if the key event is a press (key-down event)
-        if kind == event::KeyEventKind::Press {
-            match code {
-                KeyCode::Char('q') => {
-                    return Action::Exit
+            if kind == event::KeyEventKind::Press {
+                match code {
+                    KeyCode::Char('q') => {
+                        return Action::Exit;
+                    }
+                    KeyCode::Down => {
+                        page.cursor.move_down(1);
+                    }
+                    KeyCode::Up => {
+                        page.cursor.move_up(1);
+                    }
+                    KeyCode::Left => {
+                        page.cursor.move_left(1);
+                    }
+                    KeyCode::Right => {
+                        page.cursor.move_right(1);
+                    }
+                    _ => {}
                 }
-                KeyCode::Down => {
-                    page.cursor.move_down(1);
-                }
-                KeyCode::Up => {
-                    page.cursor.move_up(1);
-                }
-                KeyCode::Left => {
-                    page.cursor.move_left(1);
-                }
-                KeyCode::Right => {
-                    page.cursor.move_right(1);
-                }
-                _ => {}
+                stdout()
+                    .execute(cursor::MoveTo(
+                        page.cursor.position.0,
+                        page.cursor.position.1 / 2,
+                    ))
+                    .expect("");
             }
-            stdout().execute(cursor::MoveTo(page.cursor.position.0, page.cursor.position.1 / 2)).expect("");
         }
     }
 
