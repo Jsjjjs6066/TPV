@@ -1,16 +1,21 @@
-use std::io::{stdout, Write};
-use clearscreen::clear;
-use crossterm::style::Print;
-use crossterm::{cursor, event, ExecutableCommand, QueueableCommand};
-use crossterm::event::{Event, KeyCode, KeyEvent};
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
-use serde_json::json;
 use crate::action::Action;
+use clearscreen::clear;
+use crossterm::event::{Event, KeyCode, KeyEvent};
+use crossterm::style::Print;
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
+use crossterm::{cursor, event, ExecutableCommand, QueueableCommand};
+use serde_json::json;
+use std::io::{stdout, Write};
 use BTMD::content::Content;
 use BTMD::element::{Element, GROUP};
 use BTMD::page::Page;
 
-pub fn render_elements(page: &mut Page, elements: Vec<Element>, parent_size: &(u16, u16), timer: &u32) -> Vec<Content> {
+pub fn render_elements(
+    page: &mut Page,
+    elements: Vec<Element>,
+    parent_size: &(u16, u16),
+    timer: &u32,
+) -> Vec<Content> {
     let mut rendered_content: Vec<Content> = Vec::new();
     for mut element in elements {
         rendered_content.push(element.rerender(page, parent_size, timer));
@@ -20,12 +25,29 @@ pub fn render_elements(page: &mut Page, elements: Vec<Element>, parent_size: &(u
 
 pub fn render_page(page: &mut Page, timer: &u32) -> String {
     let mut b: Element = GROUP.new_from(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
-    let rendered: String = b.render(page, &(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1), timer).render(&(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1));
+    let rendered: String = b
+        .render(
+            page,
+            &(
+                crossterm::terminal::size().unwrap_or((0, 0)).0,
+                crossterm::terminal::size().unwrap_or((0, 0)).1 - 1,
+            ),
+            timer,
+        )
+        .render(&(
+            crossterm::terminal::size().unwrap_or((0, 0)).0,
+            crossterm::terminal::size().unwrap_or((0, 0)).1 - 1,
+        ));
     print!("{}", rendered);
     page.cursor.position.0 = crossterm::terminal::size().unwrap_or((0, 0)).0 / 2;
     page.cursor.position.1 = crossterm::terminal::size().unwrap_or((0, 0)).1 / 2;
     // let body_content: Vec<Content> = render_elements(page, body, &(crossterm::terminal::size().unwrap_or((0, 0)).0 - 2, crossterm::terminal::size().unwrap_or((0, 0)).1 - 3));
-    stdout().execute(cursor::MoveTo(crossterm::terminal::size().unwrap_or((0, 0)).0 / 2, crossterm::terminal::size().unwrap_or((0, 0)).1 / 2)).expect("");
+    stdout()
+        .execute(cursor::MoveTo(
+            crossterm::terminal::size().unwrap_or((0, 0)).0 / 2,
+            crossterm::terminal::size().unwrap_or((0, 0)).1 / 2,
+        ))
+        .expect("");
 
     // let mut line: u16 = 1;
     // let mut i: usize = 0;
@@ -51,31 +73,57 @@ pub fn render_page(page: &mut Page, timer: &u32) -> String {
 
     stdout().flush().expect("Failed to flush stdout");
 
-    stdout().execute(cursor::SetCursorStyle::SteadyBlock).expect("");
+    stdout()
+        .execute(cursor::SetCursorStyle::SteadyBlock)
+        .expect("");
     rendered
 }
 fn rerender_page(page: &mut Page, timer: &u32, last_text: &String) -> String {
     let mut b: Element = GROUP.new_from(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
-    let rendered: String = b.render(page, &(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1), timer).render(&(crossterm::terminal::size().unwrap_or((0, 0)).0, crossterm::terminal::size().unwrap_or((0, 0)).1 - 1));
+    let rendered: String = b
+        .render(
+            page,
+            &(
+                crossterm::terminal::size().unwrap_or((0, 0)).0,
+                crossterm::terminal::size().unwrap_or((0, 0)).1 - 1,
+            ),
+            timer,
+        )
+        .render(&(
+            crossterm::terminal::size().unwrap_or((0, 0)).0,
+            crossterm::terminal::size().unwrap_or((0, 0)).1 - 1,
+        ));
     if rendered == *last_text {
         return rendered;
     }
-    stdout().queue(crossterm::terminal::Clear(crossterm::terminal::ClearType::All));
-    stdout().queue(cursor::Hide);
-    stdout().queue(cursor::MoveTo(0, 0));
+
+    let _ = stdout().queue(crossterm::terminal::Clear(
+        crossterm::terminal::ClearType::All,
+    ));
+    let _ = stdout().queue(cursor::Hide);
+    let _ = stdout().queue(cursor::MoveTo(0, 0));
     // clearscreen::clear().expect("");
     // print!("{}", rendered);
-    stdout().queue(Print(rendered.as_str()));
-    stdout().queue(cursor::MoveTo(page.cursor.position.0, page.cursor.position.1 / 2)).expect("");
-    stdout().queue(cursor::Show);
-    stdout().flush();
+    let _ = stdout().queue(Print(rendered.as_str()));
+    let _ = stdout()
+        .queue(cursor::MoveTo(
+            page.cursor.position.0,
+            page.cursor.position.1,
+        ))
+        .expect("");
+    let _ = stdout().queue(cursor::Show);
+    let _ = stdout().flush();
     rendered
 }
 
-pub fn execute_page_tick(page: &mut Page, last_size: (u16, u16), timer: &u32, last_text: &String) -> Action {
+pub fn execute_page_tick(
+    page: &mut Page,
+    last_size: (u16, u16),
+    timer: &u32,
+    last_text: &String,
+) -> Action {
     enable_raw_mode().unwrap();
 
-    
     if event::poll(std::time::Duration::from_millis(5)).unwrap() {
         if let Event::Key(KeyEvent { code, kind, .. }) = event::read().unwrap() {
             // Check if the key event is a press (key-down event)
@@ -101,7 +149,7 @@ pub fn execute_page_tick(page: &mut Page, last_size: (u16, u16), timer: &u32, la
                 stdout()
                     .execute(cursor::MoveTo(
                         page.cursor.position.0,
-                        page.cursor.position.1 / 2,
+                        page.cursor.position.1,
                     ))
                     .expect("");
             }
@@ -136,7 +184,7 @@ pub fn run_page(page: &mut Page) {
             Action::Exit => {
                 disable_raw_mode().unwrap();
                 return;
-            },
+            }
             Action::None(new_last_text) => {
                 last_text = new_last_text;
             }
