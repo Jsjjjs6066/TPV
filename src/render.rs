@@ -60,15 +60,15 @@ fn rerender_page(page: &mut Page, timer: &u32, last_text: &String) -> String {
     if rendered == *last_text {
         return rendered;
     }
-    stdout().queue(crossterm::terminal::Clear(crossterm::terminal::ClearType::All));
-    stdout().queue(cursor::Hide);
-    stdout().queue(cursor::MoveTo(0, 0));
+    let _ = stdout().queue(crossterm::terminal::Clear(crossterm::terminal::ClearType::All));
+    let _ = stdout().queue(cursor::Hide);
+    let _ = stdout().queue(cursor::MoveTo(0, 0));
     // clearscreen::clear().expect("");
     // print!("{}", rendered);
-    stdout().queue(Print(rendered.as_str()));
-    stdout().queue(cursor::MoveTo(page.cursor.position.0, page.cursor.position.1 / 2)).expect("");
-    stdout().queue(cursor::Show);
-    stdout().flush();
+    let _ = stdout().queue(Print(rendered.as_str()));
+    let _ = stdout().queue(cursor::MoveTo(page.cursor.position.0, page.cursor.position.1 / 2)).expect("");
+    let _ = stdout().queue(cursor::Show);
+    let _ = stdout().flush();
     rendered
 }
 
