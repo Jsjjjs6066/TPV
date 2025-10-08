@@ -1,6 +1,7 @@
 use crate::render::run_page;
+use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
 use crossterm::ExecutableCommand;
-use std::io::stdout;
+use std::io::{stdout, Write};
 use BTMD::cursor::Cursor;
 use BTMD::import_default_elements;
 
@@ -11,9 +12,10 @@ fn main() {
     // println!("{}", SetForegroundColor(Color::DarkGreen).to_string().chars().count());
     // println!("{}", SetForegroundColor(Color::Reset).to_string().chars().count());
     import_default_elements();
-    if !std::env::args().any(|arg| arg == "--no-clear-on-run") {
-        clearscreen::clear().expect("");
-    }
+    // if !std::env::args().any(|arg| arg == "--no-clear-on-run") {
+    //     clearscreen::clear().expect("");
+    // }
+    let _ = stdout().execute(EnterAlternateScreen).unwrap();
     let filename: String = std::env::args()
         .skip(1)
         .find(|arg| !arg.starts_with("--"))
@@ -37,4 +39,5 @@ fn main() {
     stdout()
         .execute(crossterm::cursor::SetCursorStyle::DefaultUserShape)
         .unwrap();
+    let _ = stdout().execute(LeaveAlternateScreen).unwrap();
 }
