@@ -8,8 +8,6 @@ path/to/tpv <path-to-a-btmd-file>
 ```
 
 ## Parameters
- - `--no-clear-on-run`
- : Doesn't clear the screen when the program is ran.
  - `--auto-exit`
  : Exit immediately after the first frame is rendered.
 
