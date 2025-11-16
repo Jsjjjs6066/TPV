@@ -11,7 +11,6 @@ mod render;
 fn main() {
     // println!("{}", SetForegroundColor(Color::DarkGreen).to_string().chars().count());
     // println!("{}", SetForegroundColor(Color::Reset).to_string().chars().count());
-    import_default_elements();
     // if !std::env::args().any(|arg| arg == "--no-clear-on-run") {
     //     clearscreen::clear().expect("");
     // }
