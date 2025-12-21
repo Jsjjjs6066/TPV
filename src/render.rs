@@ -10,14 +10,14 @@ use BTMD::content::Content;
 use BTMD::element::{Element, GROUP};
 use BTMD::page::Page;
 
-pub fn render_elements(
+pub fn render_elements<'a>(
     page: &mut Page,
-    elements: Vec<Element>,
+    elements: &'a mut [Element<'a>],
     parent_size: &(u16, u16),
     timer: &u32,
-) -> Vec<Content> {
+) -> Vec<Content<'a>> {
     let mut rendered_content: Vec<Content> = Vec::new();
-    for mut element in elements {
+    for element in elements {
         rendered_content.push(element.rerender(page, parent_size, timer));
     }
     rendered_content
