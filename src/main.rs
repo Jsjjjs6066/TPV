@@ -19,6 +19,7 @@ fn main() {
         .skip(1)
         .find(|arg| !arg.starts_with("--"))
         .unwrap_or_else(|| {
+            let _ = stdout().execute(LeaveAlternateScreen).unwrap();
             println!("Please specify a file to open.");
             std::process::exit(1);
         });
