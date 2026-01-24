@@ -11,12 +11,12 @@ use BTMD::content::Content;
 use BTMD::element::{Element, GROUP};
 use BTMD::page::Page;
 
-pub fn render_elements<'a>(
+pub fn render_elements(
     page: &mut Page,
-    elements: &'a mut [Element<'a>],
+    elements: &mut [Element],
     parent_size: &(u16, u16),
     timer: &u32,
-) -> Vec<Content<'a>> {
+) -> Vec<Content> {
     let mut rendered_content: Vec<Content> = Vec::new();
     for element in elements {
         rendered_content.push(element.rerender(page, parent_size, timer));
@@ -24,14 +24,16 @@ pub fn render_elements<'a>(
     rendered_content
 }
 
-pub fn render_page<'a, 'b>(
-    page: &mut Page,
-    timer: &u32,
-    storage: &'b mut Option<Element<'a>>,
-) -> Content<'b> {
-    let b: Element = GROUP.new_from(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
-    *storage = Some(b);
-    let rendered_c: Content<'b> = storage.as_mut().unwrap().render(
+pub fn render_page(page: &mut Page, timer: &u32, storage: &mut Option<Element>) -> Content {
+    if storage.is_none() {
+        let b: Element = GROUP.new_from(vec![json!([]), json!({"min-height": "max"})]);
+        *storage = Some(b);
+    }
+
+    let mut root = storage.as_mut().unwrap();
+    root.children = std::mem::take(&mut page.body);
+
+    let rendered_c: Content = root.render(
         page,
         &(
             crossterm::terminal::size().unwrap_or((0, 0)).0,
@@ -39,6 +41,9 @@ pub fn render_page<'a, 'b>(
         ),
         timer,
     );
+
+    page.body = std::mem::take(&mut root.children);
+
     page.cursor.position.0 = crossterm::terminal::size().unwrap_or((0, 0)).0 / 2;
     page.cursor.position.1 = crossterm::terminal::size().unwrap_or((0, 0)).1 / 2;
     stdout()
@@ -77,15 +82,21 @@ pub fn render_page<'a, 'b>(
         .expect("");
     rendered_c
 }
-fn rerender_page<'a, 'b>(
+fn rerender_page(
     page: &mut Page,
     timer: &u32,
     last_render_string: &str,
-    storage: &'b mut Option<Element<'a>>,
-) -> Content<'b> {
-    let b: Element = GROUP.new_from(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
-    *storage = Some(b);
-    let rendered_c: Content<'b> = storage.as_mut().unwrap().render(
+    storage: &mut Option<Element>,
+) -> Content {
+    if storage.is_none() {
+        let b: Element = GROUP.new_from(vec![json!([]), json!({"min-height": "max"})]);
+        *storage = Some(b);
+    }
+
+    let mut root = storage.as_mut().unwrap();
+    root.children = std::mem::take(&mut page.body);
+
+    let rendered_c: Content = root.render(
         page,
         &(
             crossterm::terminal::size().unwrap_or((0, 0)).0,
@@ -93,6 +104,9 @@ fn rerender_page<'a, 'b>(
         ),
         timer,
     );
+
+    page.body = std::mem::take(&mut root.children);
+
     let new_render_string = rendered_c.render(&(
         crossterm::terminal::size().unwrap_or((0, 0)).0,
         crossterm::terminal::size().unwrap_or((0, 0)).1 - 1,
@@ -120,13 +134,13 @@ fn rerender_page<'a, 'b>(
     rendered_c
 }
 
-pub fn execute_page_tick<'a, 'b>(
+pub fn execute_page_tick<'a>(
     page: &mut Page,
     _last_size: (u16, u16),
     timer: &u32,
-    last_render_string: &str,
-    next_storage: &'b mut Option<Element<'a>>,
-) -> Action<'b> {
+    last_render_string: &'a str,
+    next_storage: &mut Option<Element>,
+) -> Action {
     enable_raw_mode().unwrap();
 
     if event::poll(std::time::Duration::from_millis(5)).unwrap() {
@@ -162,22 +176,7 @@ pub fn execute_page_tick<'a, 'b>(
         }
     }
 
-    if true {
-        // *page
-        //     .body
-        //     .first_mut()
-        //     .unwrap()
-        //     .children
-        //     .last_mut()
-        //     .unwrap()
-        //     .args
-        //     .first_mut()
-        //     .unwrap() = json!("Test2");
-        let mut file = File::create("output.txt").unwrap();
-        file.write_all(format!("{:?}", page.body.first().unwrap()).as_bytes()).unwrap();
-    }
-
-    let rerendered: Content<'b> = rerender_page(page, timer, last_render_string, next_storage);
+    let rerendered: Content = rerender_page(page, timer, last_render_string, next_storage);
 
     Action::None(rerendered)
 }

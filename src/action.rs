@@ -1,6 +1,6 @@
 use BTMD::content::Content;
 
-pub enum Action<'a> {
-    None(Content<'a>),
+pub enum Action {
+    None(Content),
     Exit,
 }
