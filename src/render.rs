@@ -5,6 +5,7 @@ use crossterm::style::Print;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use crossterm::{cursor, event, ExecutableCommand, QueueableCommand};
 use serde_json::json;
+use std::fs::File;
 use std::io::{stdout, Write};
 use BTMD::content::Content;
 use BTMD::element::{Element, GROUP};
@@ -23,25 +24,23 @@ pub fn render_elements<'a>(
     rendered_content
 }
 
-pub fn render_page(page: &mut Page, timer: &u32) -> String {
-    let mut b: Element = GROUP.new_from(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
-    let rendered: String = b
-        .render(
-            page,
-            &(
-                crossterm::terminal::size().unwrap_or((0, 0)).0,
-                crossterm::terminal::size().unwrap_or((0, 0)).1 - 1,
-            ),
-            timer,
-        )
-        .render(&(
+pub fn render_page<'a, 'b>(
+    page: &mut Page,
+    timer: &u32,
+    storage: &'b mut Option<Element<'a>>,
+) -> Content<'b> {
+    let b: Element = GROUP.new_from(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
+    *storage = Some(b);
+    let rendered_c: Content<'b> = storage.as_mut().unwrap().render(
+        page,
+        &(
             crossterm::terminal::size().unwrap_or((0, 0)).0,
             crossterm::terminal::size().unwrap_or((0, 0)).1 - 1,
-        ));
-    print!("{}", rendered);
+        ),
+        timer,
+    );
     page.cursor.position.0 = crossterm::terminal::size().unwrap_or((0, 0)).0 / 2;
     page.cursor.position.1 = crossterm::terminal::size().unwrap_or((0, 0)).1 / 2;
-    // let body_content: Vec<Content> = render_elements(page, body, &(crossterm::terminal::size().unwrap_or((0, 0)).0 - 2, crossterm::terminal::size().unwrap_or((0, 0)).1 - 3));
     stdout()
         .execute(cursor::MoveTo(
             crossterm::terminal::size().unwrap_or((0, 0)).0 / 2,
@@ -76,25 +75,30 @@ pub fn render_page(page: &mut Page, timer: &u32) -> String {
     stdout()
         .execute(cursor::SetCursorStyle::SteadyBlock)
         .expect("");
-    rendered
+    rendered_c
 }
-fn rerender_page(page: &mut Page, timer: &u32, last_text: &String) -> String {
-    let mut b: Element = GROUP.new_from(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
-    let rendered: String = b
-        .render(
-            page,
-            &(
-                crossterm::terminal::size().unwrap_or((0, 0)).0,
-                crossterm::terminal::size().unwrap_or((0, 0)).1 - 1,
-            ),
-            timer,
-        )
-        .render(&(
+fn rerender_page<'a, 'b>(
+    page: &mut Page,
+    timer: &u32,
+    last_render_string: &str,
+    storage: &'b mut Option<Element<'a>>,
+) -> Content<'b> {
+    let b: Element = GROUP.new_from(vec![page.body_raw.clone(), json!({"min-height": "max"})]);
+    *storage = Some(b);
+    let rendered_c: Content<'b> = storage.as_mut().unwrap().render(
+        page,
+        &(
             crossterm::terminal::size().unwrap_or((0, 0)).0,
             crossterm::terminal::size().unwrap_or((0, 0)).1 - 1,
-        ));
-    if rendered == *last_text {
-        return rendered;
+        ),
+        timer,
+    );
+    let new_render_string = rendered_c.render(&(
+        crossterm::terminal::size().unwrap_or((0, 0)).0,
+        crossterm::terminal::size().unwrap_or((0, 0)).1 - 1,
+    ));
+    if new_render_string == last_render_string {
+        return rendered_c;
     }
 
     let _ = stdout().queue(crossterm::terminal::Clear(
@@ -104,7 +108,7 @@ fn rerender_page(page: &mut Page, timer: &u32, last_text: &String) -> String {
     let _ = stdout().queue(cursor::MoveTo(0, 0));
     // clearscreen::clear().expect("");
     // print!("{}", rendered);
-    let _ = stdout().queue(Print(rendered.as_str()));
+    let _ = stdout().queue(Print(&new_render_string));
     let _ = stdout()
         .queue(cursor::MoveTo(
             page.cursor.position.0,
@@ -113,15 +117,16 @@ fn rerender_page(page: &mut Page, timer: &u32, last_text: &String) -> String {
         .expect("");
     let _ = stdout().queue(cursor::Show);
     let _ = stdout().flush();
-    rendered
+    rendered_c
 }
 
-pub fn execute_page_tick(
+pub fn execute_page_tick<'a, 'b>(
     page: &mut Page,
-    last_size: (u16, u16),
+    _last_size: (u16, u16),
     timer: &u32,
-    last_text: &String,
-) -> Action {
+    last_render_string: &str,
+    next_storage: &'b mut Option<Element<'a>>,
+) -> Action<'b> {
     enable_raw_mode().unwrap();
 
     if event::poll(std::time::Duration::from_millis(5)).unwrap() {
@@ -146,6 +151,7 @@ pub fn execute_page_tick(
                     }
                     _ => {}
                 }
+
                 stdout()
                     .execute(cursor::MoveTo(
                         page.cursor.position.0,
@@ -156,7 +162,22 @@ pub fn execute_page_tick(
         }
     }
 
-    let rerendered: String = rerender_page(page, timer, last_text);
+    if true {
+        // *page
+        //     .body
+        //     .first_mut()
+        //     .unwrap()
+        //     .children
+        //     .last_mut()
+        //     .unwrap()
+        //     .args
+        //     .first_mut()
+        //     .unwrap() = json!("Test2");
+        let mut file = File::create("output.txt").unwrap();
+        file.write_all(format!("{:?}", page.body.first().unwrap()).as_bytes()).unwrap();
+    }
+
+    let rerendered: Content<'b> = rerender_page(page, timer, last_render_string, next_storage);
 
     Action::None(rerendered)
 }
@@ -176,17 +197,41 @@ pub fn run_page(page: &mut Page) {
         print!("{}", title_command);
         stdout().flush().unwrap(); // Ensure the command is sent to the terminal
     }
-    let mut last_text: String = render_page(page, &0);
+    let mut storage_a: Option<Element> = None;
+    let mut storage_b: Option<Element> = None;
+    let mut use_a_next = true;
+
+    // Initial render into storage_a
+    let content = render_page(page, &0, &mut storage_a);
+    let mut last_render_string = content.render(&(
+        crossterm::terminal::size().unwrap_or((0, 0)).0,
+        crossterm::terminal::size().unwrap_or((0, 0)).1 - 1,
+    ));
+    drop(content);
+
     let mut last_size = crossterm::terminal::size().unwrap_or((0, 0));
     let mut timer: u32 = 0;
+
+    use_a_next = false;
+
     loop {
-        match execute_page_tick(page, last_size, &timer, &last_text) {
+        let next_storage = if use_a_next {
+            &mut storage_a
+        } else {
+            &mut storage_b
+        };
+
+        match execute_page_tick(page, last_size, &timer, &last_render_string, next_storage) {
             Action::Exit => {
                 disable_raw_mode().unwrap();
                 return;
             }
-            Action::None(new_last_text) => {
-                last_text = new_last_text;
+            Action::None(new_content) => {
+                last_render_string = new_content.render(&(
+                    crossterm::terminal::size().unwrap_or((0, 0)).0,
+                    crossterm::terminal::size().unwrap_or((0, 0)).1 - 1,
+                ));
+                use_a_next = !use_a_next;
             }
         }
         last_size = crossterm::terminal::size().unwrap_or((0, 0));

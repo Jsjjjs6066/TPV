@@ -3,6 +3,7 @@ use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
 use crossterm::ExecutableCommand;
 use std::io::{stdout, Write};
 use BTMD::cursor::Cursor;
+use BTMD::element::Element;
 use BTMD::import_default_elements;
 
 mod action;
@@ -25,7 +26,8 @@ fn main() {
     let file_content: String = std::fs::read_to_string(filename).expect("Failed to read file");
     let mut page: BTMD::page::Page = BTMD::parse::parse_str_to_page(&file_content);
     if std::env::args().any(|arg| arg == "--auto-exit") {
-        render::render_page(&mut page, &0);
+        let mut storage: Option<Element> = None;
+        render::render_page(&mut page, &0, &mut storage);
     } else {
         run_page(&mut page);
     }

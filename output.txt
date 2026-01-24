@@ -1,0 +1,32 @@
+Element { 
+    args: [
+        Array [
+            Array [
+                String("h"), 
+                String("Very very long title"), 
+                Object {"speed": Number(11)}
+            ], Array [
+                String("h"), 
+                String("Other long title"), 
+                Object {"speed": Number(-1)}
+            ], Array [
+                String("h"), 
+                String("Short title")
+            ], 
+            Array [
+                String("line"), 
+                String("-")
+            ], 
+            Array [
+                String("p"), 
+                String("Test")
+            ]
+        ], 
+        Object {
+            "color": String("blue"), 
+            "connect-to-horizontal-chars": Bool(true)
+        }
+    ], 
+    children: [], 
+    element_tag: "border" 
+}

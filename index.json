@@ -3,13 +3,14 @@
 	"body": [
 		["b", [
 		    ["h", "Very very long title", {
-          "speed": 11
-        }],
-			["h", "Other long title", {
-        "speed": -1
-      }],
+				"speed": 11
+				}],
+					["h", "Other long title", {
+				"speed": -1
+			}],
 			["h", "Short title"],
-		    ["line", "-"]
+		    ["line", "-"],
+			["p", "Test"]
 		], {
 		    "connect-to-horizontal-chars": true,
 			"color": "blue"
