@@ -1,16 +1,15 @@
 use crate::action::Action;
-use clearscreen::clear;
+use btmd::content::Content;
+use btmd::element::{Element, GROUP};
+use btmd::page::Page;
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use crossterm::style::Print;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
-use crossterm::{cursor, event, ExecutableCommand, QueueableCommand};
+use crossterm::{ExecutableCommand, QueueableCommand, cursor, event};
 use serde_json::json;
-use std::fs::File;
-use std::io::{stdout, Write};
-use BTMD::content::Content;
-use BTMD::element::{Element, GROUP};
-use BTMD::page::Page;
+use std::io::{Write, stdout};
 
+#[allow(dead_code)]
 pub fn render_elements(
     page: &mut Page,
     elements: &mut [Element],
@@ -30,7 +29,7 @@ pub fn render_page(page: &mut Page, timer: &u32, storage: &mut Option<Element>) 
         *storage = Some(b);
     }
 
-    let mut root = storage.as_mut().unwrap();
+    let root = storage.as_mut().unwrap();
     root.children = std::mem::take(&mut page.body);
 
     let rendered_c: Content = root.render(
@@ -93,7 +92,7 @@ fn rerender_page(
         *storage = Some(b);
     }
 
-    let mut root = storage.as_mut().unwrap();
+    let root = storage.as_mut().unwrap();
     root.children = std::mem::take(&mut page.body);
 
     let rendered_c: Content = root.render(
@@ -107,10 +106,7 @@ fn rerender_page(
 
     page.body = std::mem::take(&mut root.children);
 
-    let new_render_string = rendered_c.render(&(
-        crossterm::terminal::size().unwrap_or((0, 0)).0,
-        crossterm::terminal::size().unwrap_or((0, 0)).1 - 1,
-    ));
+    let new_render_string = rendered_c.render();
     if new_render_string == last_render_string {
         return rendered_c;
     }
@@ -198,20 +194,15 @@ pub fn run_page(page: &mut Page) {
     }
     let mut storage_a: Option<Element> = None;
     let mut storage_b: Option<Element> = None;
-    let mut use_a_next = true;
+    let mut use_a_next = false;
 
     // Initial render into storage_a
     let content = render_page(page, &0, &mut storage_a);
-    let mut last_render_string = content.render(&(
-        crossterm::terminal::size().unwrap_or((0, 0)).0,
-        crossterm::terminal::size().unwrap_or((0, 0)).1 - 1,
-    ));
+    let mut last_render_string = content.render();
     drop(content);
 
     let mut last_size = crossterm::terminal::size().unwrap_or((0, 0));
     let mut timer: u32 = 0;
-
-    use_a_next = false;
 
     loop {
         let next_storage = if use_a_next {
@@ -226,10 +217,7 @@ pub fn run_page(page: &mut Page) {
                 return;
             }
             Action::None(new_content) => {
-                last_render_string = new_content.render(&(
-                    crossterm::terminal::size().unwrap_or((0, 0)).0,
-                    crossterm::terminal::size().unwrap_or((0, 0)).1 - 1,
-                ));
+                last_render_string = new_content.render();
                 use_a_next = !use_a_next;
             }
         }

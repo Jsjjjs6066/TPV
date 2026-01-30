@@ -1,4 +1,4 @@
-use BTMD::content::Content;
+use btmd::content::Content;
 
 pub enum Action {
     None(Content),

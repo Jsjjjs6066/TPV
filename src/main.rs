@@ -1,10 +1,8 @@
 use crate::render::run_page;
-use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
+use btmd::element::Element;
 use crossterm::ExecutableCommand;
-use std::io::{stdout, Write};
-use BTMD::cursor::Cursor;
-use BTMD::element::Element;
-use BTMD::import_default_elements;
+use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
+use std::io::stdout;
 
 mod action;
 mod render;
@@ -24,7 +22,7 @@ fn main() {
             std::process::exit(1);
         });
     let file_content: String = std::fs::read_to_string(filename).expect("Failed to read file");
-    let mut page: BTMD::page::Page = BTMD::parse::parse_str_to_page(&file_content);
+    let mut page: btmd::page::Page = btmd::parse::parse_str_to_page(&file_content);
     if std::env::args().any(|arg| arg == "--auto-exit") {
         let mut storage: Option<Element> = None;
         render::render_page(&mut page, &0, &mut storage);

@@ -13,7 +13,10 @@
 			["p", "Test"]
 		], {
 		    "connect-to-horizontal-chars": true,
-			"color": "blue"
+			"color": "blue",
+			"onhover": {
+				"color": "red"
+			}
 		}]
 	]
 }
