@@ -1,13 +1,14 @@
 use crate::action::Action;
 use btmd::content::Content;
 use btmd::element::{Element, GROUP};
+use btmd::logger;
 use btmd::page::Page;
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use crossterm::style::Print;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
-use crossterm::{ExecutableCommand, QueueableCommand, cursor, event};
+use crossterm::{cursor, event, ExecutableCommand, QueueableCommand};
 use serde_json::json;
-use std::io::{Write, stdout};
+use std::io::{stdout, Write};
 
 #[allow(dead_code)]
 pub fn render_elements(
@@ -73,6 +74,8 @@ pub fn render_page(page: &mut Page, timer: &u32, storage: &mut Option<Element>) 
     //         i += 1;
     //     }
     // }
+
+    logger::write_page(&page.body).expect("Failed to write page");
 
     stdout().flush().expect("Failed to flush stdout");
 
