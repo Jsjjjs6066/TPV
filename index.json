@@ -8,11 +8,6 @@
 					"color": "blue"
 				}
 			}]
-		], {
-			"color": "green",
-			"onhover": {
-				"color": "red"
-			}
-		}]
+		]]
 	]
 }
