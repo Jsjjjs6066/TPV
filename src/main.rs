@@ -1,7 +1,7 @@
 use crate::render::run_page;
 use btmd::element::Element;
-use crossterm::ExecutableCommand;
 use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
+use crossterm::ExecutableCommand;
 use std::io::stdout;
 
 mod action;
@@ -23,6 +23,13 @@ fn main() {
         });
     let file_content: String = std::fs::read_to_string(filename).expect("Failed to read file");
     let mut page: btmd::page::Page = btmd::parse::parse_str_to_page(&file_content);
+    let _ = btmd::logger::write_log(
+        format!(
+            "App started. Page parsed with {} elements.",
+            page.body.len()
+        )
+        .as_bytes(),
+    );
     if std::env::args().any(|arg| arg == "--auto-exit") {
         let mut storage: Option<Element> = None;
         render::render_page(&mut page, &0, &mut storage);

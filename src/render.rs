@@ -10,20 +10,6 @@ use crossterm::{cursor, event, ExecutableCommand, QueueableCommand};
 use serde_json::json;
 use std::io::{stdout, Write};
 
-#[allow(dead_code)]
-pub fn render_elements(
-    page: &mut Page,
-    elements: &mut [Element],
-    parent_size: &(u16, u16),
-    timer: &u32,
-) -> Vec<Content> {
-    let mut rendered_content: Vec<Content> = Vec::new();
-    for element in elements {
-        rendered_content.push(element.rerender(page, parent_size, timer));
-    }
-    rendered_content
-}
-
 pub fn render_page(page: &mut Page, timer: &u32, storage: &mut Option<Element>) -> Content {
     if storage.is_none() {
         let b: Element = GROUP.new_from(vec![json!([]), json!({"min-height": "max"})]);
@@ -40,6 +26,7 @@ pub fn render_page(page: &mut Page, timer: &u32, storage: &mut Option<Element>) 
             crossterm::terminal::size().unwrap_or((0, 0)).1 - 1,
         ),
         timer,
+        (0, 0),
     );
 
     page.body = std::mem::take(&mut root.children);
@@ -86,7 +73,6 @@ pub fn render_page(page: &mut Page, timer: &u32, storage: &mut Option<Element>) 
 }
 fn rerender_page(
     page: &mut Page,
-    timer: &u32,
     last_render_string: &str,
     storage: &mut Option<Element>,
 ) -> Content {
@@ -104,7 +90,8 @@ fn rerender_page(
             crossterm::terminal::size().unwrap_or((0, 0)).0,
             crossterm::terminal::size().unwrap_or((0, 0)).1 - 1,
         ),
-        timer,
+        &page.get_timer(),
+        (0, 0),
     );
 
     page.body = std::mem::take(&mut root.children);
@@ -136,7 +123,6 @@ fn rerender_page(
 pub fn execute_page_tick<'a>(
     page: &mut Page,
     _last_size: (u16, u16),
-    timer: &u32,
     last_render_string: &'a str,
     next_storage: &mut Option<Element>,
 ) -> Action {
@@ -151,16 +137,16 @@ pub fn execute_page_tick<'a>(
                         return Action::Exit;
                     }
                     KeyCode::Down => {
-                        page.cursor.move_down(1);
+                        page.move_down(1);
                     }
                     KeyCode::Up => {
-                        page.cursor.move_up(1);
+                        page.move_up(1);
                     }
                     KeyCode::Left => {
-                        page.cursor.move_left(1);
+                        page.move_left(1);
                     }
                     KeyCode::Right => {
-                        page.cursor.move_right(1);
+                        page.move_right(1);
                     }
                     _ => {}
                 }
@@ -175,7 +161,7 @@ pub fn execute_page_tick<'a>(
         }
     }
 
-    let rerendered: Content = rerender_page(page, timer, last_render_string, next_storage);
+    let rerendered: Content = rerender_page(page, last_render_string, next_storage);
 
     Action::None(rerendered)
 }
@@ -202,10 +188,18 @@ pub fn run_page(page: &mut Page) {
     // Initial render into storage_a
     let content = render_page(page, &0, &mut storage_a);
     let mut last_render_string = content.render();
+    stdout().execute(cursor::MoveTo(0, 0)).expect("");
+    stdout().execute(Print(&last_render_string)).expect("");
+    stdout()
+        .execute(cursor::MoveTo(
+            page.cursor.position.0,
+            page.cursor.position.1,
+        ))
+        .expect("");
+    stdout().flush().unwrap();
     drop(content);
 
     let mut last_size = crossterm::terminal::size().unwrap_or((0, 0));
-    let mut timer: u32 = 0;
 
     loop {
         let next_storage = if use_a_next {
@@ -214,7 +208,7 @@ pub fn run_page(page: &mut Page) {
             &mut storage_b
         };
 
-        match execute_page_tick(page, last_size, &timer, &last_render_string, next_storage) {
+        match execute_page_tick(page, last_size, &last_render_string, next_storage) {
             Action::Exit => {
                 disable_raw_mode().unwrap();
                 return;
@@ -226,6 +220,13 @@ pub fn run_page(page: &mut Page) {
         }
         last_size = crossterm::terminal::size().unwrap_or((0, 0));
         std::thread::sleep(std::time::Duration::from_millis(5));
-        timer += 1;
+        page.tick();
+        stdout()
+            .execute(cursor::MoveTo(
+                page.cursor.position.0,
+                page.cursor.position.1,
+            ))
+            .expect("");
+        stdout().flush().unwrap();
     }
 }

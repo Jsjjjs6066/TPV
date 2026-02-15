@@ -3,3 +3,4 @@ target/
 log.txt
 debug.log
 .btmd_log/
+settings.json
