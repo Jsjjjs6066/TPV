@@ -1,4 +1,6 @@
+use btmd::content::Content;
+
 pub enum Action {
-    None(String),
+    None(Content),
     Exit,
 }
