@@ -1,6 +1,0 @@
-[submodule "BTMD"]
-	path = BTMD
-	url = https://github.com/Jsjjjs6066/BTMD.git
-[submodule "btmd"]
-	path = btmd
-	url = ./btmd

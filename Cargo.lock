@@ -13,21 +13,6 @@ name = "bitflags"
 version = "2.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b8e56985ec62d17e9c1001dc89c88ecd7dc08e47eba5ec7c29c7b5eeecde967"
-dependencies = [
- "serde",
-]
-
-[[package]]
-name = "btmd"
-version = "0.1.0"
-dependencies = [
- "btmd_macro",
- "crossterm",
- "enum_dispatch",
- "figlet-rs",
- "serde",
- "serde_jsonc",
-]
 
 [[package]]
 name = "btmd_macro"
@@ -84,7 +69,6 @@ dependencies = [
  "mio",
  "parking_lot",
  "rustix",
- "serde",
  "signal-hook",
  "signal-hook-mio",
  "winapi",
@@ -509,9 +493,11 @@ dependencies = [
 name = "tpv"
 version = "0.1.0"
 dependencies = [
- "btmd",
+ "btmd_macro",
  "clearscreen",
  "crossterm",
+ "enum_dispatch",
+ "figlet-rs",
  "serde_jsonc",
 ]
 

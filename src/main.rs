@@ -1,11 +1,12 @@
+pub mod action;
+pub mod btmd;
+pub mod render;
+
 use crate::render::run_page;
 use btmd::element::Element;
 use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
 use crossterm::ExecutableCommand;
 use std::io::stdout;
-
-mod action;
-mod render;
 
 fn main() {
     // println!("{}", SetForegroundColor(Color::DarkGreen).to_string().chars().count());

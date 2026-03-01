@@ -7,4 +7,6 @@ edition = "2021"
 clearscreen = "4.0.2"
 crossterm = "0.29.0"
 serde_jsonc = "1.0.108"
-btmd = { path = "btmd" }
+btmd_macro = { path = "btmd_macro" }
+figlet-rs = "0.1.5"
+enum_dispatch = "0.3.13"
