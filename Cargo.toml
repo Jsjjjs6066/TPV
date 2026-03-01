@@ -1,10 +1,10 @@
 [package]
-name = "TPRL"
+name = "tpv"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 clearscreen = "4.0.2"
 crossterm = "0.29.0"
-serde_json = "1.0.141"
+serde_jsonc = "1.0.108"
 btmd = { path = "btmd" }
