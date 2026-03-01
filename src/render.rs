@@ -7,7 +7,7 @@ use crossterm::event::{Event, KeyCode, KeyEvent};
 use crossterm::style::Print;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use crossterm::{cursor, event, ExecutableCommand, QueueableCommand};
-use serde_json::json;
+use serde_jsonc::json;
 use std::io::{stdout, Write};
 
 pub fn render_page(page: &mut Page, timer: &u32, storage: &mut Option<Element>) -> Content {
