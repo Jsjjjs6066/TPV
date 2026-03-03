@@ -334,19 +334,19 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
             "color" => ValueTypes::Color(color),
             "background_color" => ValueTypes::Color(background_color)
         ));
-        let color: String = unwrap_val!(onhover_config.get("color").unwrap(), Color).into();
-        let background_color: String = unwrap_val!(onhover_config.get("background_color").unwrap(), Color).into();
+        let color: Value = unwrap_val!(onhover_config.get("color").unwrap(), Color).into();
+        let background_color: Value = unwrap_val!(onhover_config.get("background_color").unwrap(), Color).into();
         if holder.args.len() <= 1 {
             holder.args.resize(2, Value::Object(Default::default()));
         }
         holder.args[1]
             .as_object_mut()
             .unwrap()
-            .insert("color".to_string(), Value::String(color));
+            .insert("color".to_string(), color);
         holder.args[1]
             .as_object_mut()
             .unwrap()
-            .insert("background_color".to_string(), Value::String(background_color));
+            .insert("background_color".to_string(), background_color);
     });
     e
 });

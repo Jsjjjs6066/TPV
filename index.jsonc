@@ -22,10 +22,10 @@
 				}
 			]
 		], {
-			"background-color": "dark_yellow",
+			"background-color": [123, 123, 123]/* ,
 			"onhover": {
-				"background-color": "red"
-			}
+				"background-color": [123, 123, 123]
+			} */
 		}]
 	]
 }

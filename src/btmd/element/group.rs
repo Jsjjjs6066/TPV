@@ -136,11 +136,11 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
         let onhover_config = onhover_config.parse_inner(config_preset!(
             "background-color" => ValueTypes::Color(ColorType { value: background_color })
         ));
-        let onhover_background_color: String = unwrap_val!(onhover_config.get("background-color").unwrap(), Color).into();
+        let onhover_background_color: Value = unwrap_val!(onhover_config.get("background-color").unwrap(), Color).into();
         holder.args[1]
             .as_object_mut()
             .unwrap()
-            .insert("background-color".to_string(), Value::String(onhover_background_color));
+            .insert("background-color".to_string(), onhover_background_color);
     });
 
     group
