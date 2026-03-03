@@ -35,7 +35,8 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
                     auto: Int::Bit16U(0),
                 }),
                 "connect-to-horizontal-chars" => ValueTypes::Bool(BoolType { value: true }),
-                "color" => ValueTypes::Color(Default::default())
+                "color" => ValueTypes::Color(Default::default()),
+                "background-color" => ValueTypes::Color(Default::default())
             );
             let arg_parser = args_parser!(
                 ValueTypes::Array(ArrayType {
@@ -52,6 +53,7 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
             let connect_to_horizontal_chars: bool =
                 unwrap_val!(config.1.get("connect-to-horizontal-chars").unwrap(), Bool).value;
             let color: Color = unwrap_val!(config.1.get("color").unwrap(), Color).value;
+            let background_color: Color = unwrap_val!(config.1.get("background-color").unwrap(), Color).value;
             // let mut default_config: Map<String, Value> = Map::new();
             // default_config.insert("min-height".to_string(), Value::Number(0.into()));
             // default_config.insert("connect-to-horizontal-chars".to_string(), Value::Bool(true));
@@ -109,7 +111,7 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
                     + top_right.to_string().as_str()
                     + vertical_char.to_string().as_str(),
                 color,
-                Color::Reset,
+                background_color,
             );
 
             let mut i = 1;
@@ -154,24 +156,24 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
                                 border_builder.append_text(
                                     temp,
                                     t.foreground_color,
-                                    t.background_color,
+                                    if t.background_color == Color::Reset { background_color } else { t.background_color },
                                 );
                                 border_builder.append_text(
                                     '┤'.to_string() + vertical_char.to_string().as_str(),
                                     color,
-                                    Color::Reset,
+                                    background_color,
                                 );
                                 temp = String::new();
                             } else {
                                 border_builder.append_text(
                                     temp,
                                     t.foreground_color,
-                                    t.background_color,
+                                    if t.background_color == Color::Reset { background_color } else { t.background_color },
                                 );
                                 border_builder.append_text(
                                     vertical_char.to_string() + vertical_char.to_string().as_str(),
                                     color,
-                                    Color::Reset,
+                                    background_color,
                                 );
                                 temp = String::new();
                             }
@@ -192,12 +194,12 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
                                 border_builder.append_text(
                                     temp,
                                     t.foreground_color,
-                                    t.background_color,
+                                    if t.background_color == Color::Reset { background_color } else { t.background_color },
                                 );
                                 border_builder.append_text(
                                     vertical_char.to_string() + vertical_char.to_string().as_str(),
                                     color,
-                                    Color::Reset,
+                                    background_color,
                                 );
                                 temp = String::new();
                                 i += 2;
@@ -213,7 +215,7 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
                         }
                     }
                     if temp != "" {
-                        border_builder.append_text(temp, t.foreground_color, t.background_color);
+                        border_builder.append_text(temp, t.foreground_color, if t.background_color == Color::Reset { background_color } else { t.background_color });
                     }
                 }
             }
@@ -246,7 +248,7 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
 
             if !(i % width as u32 == 0) {
                 let padding_needed = width - 1 - i as usize % width;
-                border_builder.append_text_default((&*" ".repeat(padding_needed)).to_string());
+                border_builder.append_text((&*" ".repeat(padding_needed)).to_string(), color, background_color);
                 if padding_needed == 0 {
                     let last_char = border_builder
                         .content
@@ -254,12 +256,12 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
                         .and_then(|t| t.text.chars().last())
                         .unwrap_or(' ');
                     if last_char == horizontal_char && connect_to_horizontal_chars {
-                        border_builder.append_text('┤'.to_string(), color, Color::Reset);
+                        border_builder.append_text('┤'.to_string(), color, background_color);
                     } else {
-                        border_builder.append_text(vertical_char.to_string(), color, Color::Reset);
+                        border_builder.append_text(vertical_char.to_string(), color, background_color);
                     }
                 } else {
-                    border_builder.append_text(vertical_char.to_string(), color, Color::Reset);
+                    border_builder.append_text(vertical_char.to_string(), color, background_color);
                 }
             }
 
@@ -271,7 +273,7 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
                             + &*" ".repeat(width - 2)
                             + vertical_char.to_string().as_str(),
                         color,
-                        Color::Reset,
+                        background_color,
                     );
                     lines += 1;
                 }
@@ -282,7 +284,7 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
                     + &horizontal_char.to_string().repeat(width - 2)
                     + bottom_right.to_string().as_str(),
                 color,
-                Color::Reset,
+                background_color,
             );
             border.push_str(&horizontal_char.to_string().repeat(width - 2));
             border.push(bottom_right);
@@ -311,6 +313,7 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
     e.set_on_hover_func(|holder: &mut Element, _| {
         let config_preset = config_preset!(
             "color" => ValueTypes::Color(Default::default()),
+            "background_color" => ValueTypes::Color(Default::default()),
             "onhover" => ValueTypes::OnHover(OnHoverType {
                 map: Default::default()
             })
@@ -322,14 +325,17 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
             }),
             ValueTypes::Config(ConfigType(config_preset, Default::default()))
         );
-        let args_parsed = arg_parser.parse(holder.args.to_owned());
+        let args_parsed = arg_parser.parse(holder.raw_args.to_owned());
         let config: ConfigType = unwrap_val!(args_parsed.get(1).unwrap(), Config);
         let color: ColorType = unwrap_val!(config.1.get("color").unwrap(), Color);
+        let background_color: ColorType = unwrap_val!(config.1.get("background_color").unwrap(), Color);
         let onhover_config: OnHoverType = unwrap_val!(config.1.get("onhover").unwrap(), OnHover);
         let onhover_config = onhover_config.parse_inner(config_preset!(
-            "color" => ValueTypes::Color(color)
+            "color" => ValueTypes::Color(color),
+            "background_color" => ValueTypes::Color(background_color)
         ));
         let color: String = unwrap_val!(onhover_config.get("color").unwrap(), Color).into();
+        let background_color: String = unwrap_val!(onhover_config.get("background_color").unwrap(), Color).into();
         if holder.args.len() <= 1 {
             holder.args.resize(2, Value::Object(Default::default()));
         }
@@ -337,6 +343,10 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
             .as_object_mut()
             .unwrap()
             .insert("color".to_string(), Value::String(color));
+        holder.args[1]
+            .as_object_mut()
+            .unwrap()
+            .insert("background_color".to_string(), Value::String(background_color));
     });
     e
 });

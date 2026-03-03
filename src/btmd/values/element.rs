@@ -42,3 +42,13 @@ impl Default for ElementType {
         }
     }
 }
+
+#[macro_export]
+macro_rules! element_array {
+    () => {
+        ValueTypes::Array(ArrayType {
+            array: vec![],
+            vec_type: Box::new(ValueTypes::Element(Default::default())),
+        })
+    };
+}

@@ -1,29 +1,33 @@
 use btmd_macro::unwrap_val;
+use crossterm::style::Color;
 use serde_jsonc::Value;
 use std::cell::RefCell;
 use std::sync::{Arc, LazyLock, RwLock};
 
 use crate::btmd::content::ContentBuilder;
 use crate::btmd::values::ValueTypes::{Array, Config};
-use crate::btmd::values::{ArrayType, ConfigType, ValueTypes};
-use crate::{config_preset, args_parser};
+use crate::btmd::values::{ArrayType, ColorType, ConfigType, OnHoverType, ValueTypes};
+use crate::{args_parser, config_preset, element_array};
 use crate::btmd::{content::Content, element::Element, page::Page, parse::parse_vec_to_vec};
 
 pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
-    Element::new(
+    let mut group = Element::new(
         |holder: &mut Element,
          page: &mut Page,
          args: Vec<Value>,
          parent_size: &(u16, u16),
          timer: &u32,
          pos: (u32, u32)| {
-            let config_preset = config_preset!();
+            let config_preset = config_preset!(
+                "background-color" => ValueTypes::Color(ColorType { value: Color::Reset })
+            );
             let arg_parser = args_parser!(Array(ArrayType {
                 array: vec![],
                 vec_type: Box::new(ValueTypes::Element(Default::default())),
             }), Config(ConfigType(config_preset, Default::default())));
             let args_parsed = arg_parser.parse(args);
-            let _config: ConfigType = unwrap_val!(args_parsed.get(1).unwrap(), Config);
+            let config: ConfigType = unwrap_val!(args_parsed.get(1).unwrap(), Config);
+            let background_color = unwrap_val!(config.1.get("background-color").unwrap(), Color).value;
 
             let width: i32 = parent_size.0 as i32;
 
@@ -66,7 +70,7 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
                                 border_builder.append_text(
                                     temp,
                                     t.foreground_color,
-                                    t.background_color,
+                                    if t.background_color == Color::Reset { background_color } else { t.background_color },
                                 );
                                 temp = String::new();
                                 lines += 1;
@@ -84,13 +88,15 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
                             i += 1;
                         }
                     }
-                    border_builder.append_text(temp, t.foreground_color, t.background_color);
+                    border_builder.append_text(temp, t.foreground_color, if t.background_color == Color::Reset { background_color } else { t.background_color });
                 }
             }
 
             if !(i % width as u32 == 0) {
-                border_builder.append_text_default(
+                border_builder.append_text(
                     (&*" ".repeat((width as u32 - i % width as u32) as usize)).to_string(),
+                    Color::Reset,
+                    background_color,
                 );
             }
 
@@ -115,5 +121,27 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
         },
         "group",
         (0, 0),
-    )
+    );
+
+    group.set_on_hover_func(|holder: &mut Element, _| {
+        let config_preset = config_preset!(
+            "background-color" => ValueTypes::Color(ColorType { value: Color::Reset }),
+            "onhover" => ValueTypes::OnHover(OnHoverType { map: Default::default() })
+        );
+        let arg_parser = args_parser!(element_array!(), Config(ConfigType(config_preset, Default::default())));
+        let args_parsed = arg_parser.parse(holder.raw_args.to_owned());
+        let config: ConfigType = unwrap_val!(args_parsed.get(1).unwrap(), Config);
+        let background_color = unwrap_val!(config.1.get("background-color").unwrap(), Color).value;
+        let onhover_config = unwrap_val!(config.1.get("onhover").unwrap(), OnHover);
+        let onhover_config = onhover_config.parse_inner(config_preset!(
+            "background-color" => ValueTypes::Color(ColorType { value: background_color })
+        ));
+        let onhover_background_color: String = unwrap_val!(onhover_config.get("background-color").unwrap(), Color).into();
+        holder.args[1]
+            .as_object_mut()
+            .unwrap()
+            .insert("background-color".to_string(), Value::String(onhover_background_color));
+    });
+
+    group
 });

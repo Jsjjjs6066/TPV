@@ -25,10 +25,12 @@ impl Text {
 
     pub fn render(&self) -> String {
         format!(
-            "{}{}{}",
+            "{}{}{}{}{}",
+            SetBackgroundColor(self.background_color),
             SetForegroundColor(self.foreground_color),
             self.text,
-            SetBackgroundColor(self.background_color)
+            SetBackgroundColor(Color::Reset),
+            SetForegroundColor(Color::Reset),
         )
     }
 }
