@@ -2,6 +2,7 @@
 	"title": "BTMD Element Module",
 	"body": [ // Comments work!!!
 		["b",[
+			["b", [
 				["b",
 					[
 						["h", "test ŽžČčĆćŠšĐđ ŽžČčĆćŠšĐđ" /* , {"speed": 10} */],
@@ -21,7 +22,9 @@
 						"color": "red"
 					}
 				]
-			]
-		]
+			], {
+				"color": "yellow"
+			}]
+		]]
 	]
 }

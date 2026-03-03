@@ -38,3 +38,21 @@ impl Default for Text {
         Self {text: Default::default(), foreground_color: Color::Reset, background_color: Color::Reset}
     }
 }
+
+impl<'a> IntoIterator for &'a Text {
+    type Item = char;
+    type IntoIter = std::str::Chars<'a>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.text.chars()
+    }
+}
+
+impl<'a> std::iter::Sum<&'a Text> for Text {
+    fn sum<I: Iterator<Item = &'a Text>>(iter: I) -> Self {
+        let mut text = String::new();
+        for t in iter {
+            text.push_str(&t.text);
+        }
+        Text::new_default(text)
+    }
+}
