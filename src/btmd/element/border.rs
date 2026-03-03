@@ -8,7 +8,7 @@ use crate::{
         element::Element,
         page::Page,
         parse::parse_vec_to_vec,
-        values::{int::Int, ArrayType, BoolType, ConfigType, SizeType, ValueTypes},
+        values::{ArrayType, BoolType, ColorType, ConfigType, OnHoverType, SizeType, ValueTypes, int::Int},
     },
     config_preset,
 };
@@ -310,12 +310,10 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
     );
     e.set_on_hover_func(|holder: &mut Element, _| {
         let config_preset = config_preset!(
-            "onhover" => ValueTypes::Config(ConfigType(
-                config_preset!(
-                    "color" => ValueTypes::Color(Default::default())
-                ),
-                Default::default()
-            ))
+            "color" => ValueTypes::Color(Default::default()),
+            "onhover" => ValueTypes::OnHover(OnHoverType {
+                map: Default::default()
+            })
         );
         let arg_parser = args_parser!(
             ValueTypes::Array(ArrayType {
@@ -326,8 +324,12 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
         );
         let args_parsed = arg_parser.parse(holder.args.to_owned());
         let config: ConfigType = unwrap_val!(args_parsed.get(1).unwrap(), Config);
-        let onhover_config: ConfigType = unwrap_val!(config.1.get("onhover").unwrap(), Config);
-        let color: String = unwrap_val!(onhover_config.1.get("color").unwrap(), Color).into();
+        let color: ColorType = unwrap_val!(config.1.get("color").unwrap(), Color);
+        let onhover_config: OnHoverType = unwrap_val!(config.1.get("onhover").unwrap(), OnHover);
+        let onhover_config = onhover_config.parse_inner(config_preset!(
+            "color" => ValueTypes::Color(color)
+        ));
+        let color: String = unwrap_val!(onhover_config.get("color").unwrap(), Color).into();
         if holder.args.len() <= 1 {
             holder.args.resize(2, Value::Object(Default::default()));
         }

@@ -6,6 +6,7 @@ pub mod config;
 pub mod element;
 pub mod int;
 pub mod null;
+pub mod on_hover;
 pub mod size;
 pub mod text;
 
@@ -17,6 +18,7 @@ pub use config::ConfigType;
 pub use element::ElementType;
 pub use int::IntType;
 pub use null::NullType;
+pub use on_hover::OnHoverType;
 pub use size::SizeType;
 pub use text::TextType;
 
@@ -52,6 +54,8 @@ pub enum ValueTypes {
     Bool(BoolType),
     #[config_def("color")]
     Color(ColorType),
+    #[config_def("on_hover")]
+    OnHover(OnHoverType),
 }
 
 impl Default for ValueTypes {

@@ -4,7 +4,7 @@ pub mod render;
 
 use crate::render::run_page;
 use btmd::element::Element;
-use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
+use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode};
 use crossterm::ExecutableCommand;
 use std::io::stdout;
 
@@ -35,5 +35,6 @@ fn main() {
     stdout()
         .execute(crossterm::cursor::SetCursorStyle::DefaultUserShape)
         .unwrap();
+    disable_raw_mode().unwrap();
     let _ = stdout().execute(LeaveAlternateScreen).unwrap();
 }
