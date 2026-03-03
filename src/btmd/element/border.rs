@@ -1,14 +1,17 @@
 use btmd_macro::unwrap_val;
 use serde_jsonc::Value;
 
-use crate::{config_preset, args_parser, btmd::{
-    content::{Content, ContentBuilder},
-    element::Element,
-    logger,
-    page::Page,
-    parse::parse_vec_to_vec,
-    values::{ArrayType, BoolType, ConfigType, SizeType, ValueTypes, int::Int},
-}};
+use crate::{
+    args_parser,
+    btmd::{
+        content::{Content, ContentBuilder},
+        element::Element,
+        page::Page,
+        parse::parse_vec_to_vec,
+        values::{ArrayType, BoolType, ColorType, ConfigType, OnHoverType, SizeType, ValueTypes, int::Int},
+    },
+    config_preset,
+};
 
 use crossterm::style::Color;
 use std::{
@@ -140,17 +143,14 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
                     let mut temp: String = String::new();
                     for char in t.text.chars() {
                         if (i + 1) % width as u32 == 0 {
-                            if border_builder
-                                .content
-                                .last()
-                                .unwrap()
-                                .text
-                                .chars()
-                                .last()
-                                .unwrap_or(' ')
-                                == horizontal_char
-                                && connect_to_horizontal_chars
-                            {
+                            let last_char = temp.chars().last().unwrap_or_else(|| {
+                                border_builder
+                                    .content
+                                    .last()
+                                    .and_then(|t| t.text.chars().last())
+                                    .unwrap_or(' ')
+                            });
+                            if last_char == horizontal_char && connect_to_horizontal_chars {
                                 border_builder.append_text(
                                     temp,
                                     t.foreground_color,
@@ -245,18 +245,19 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
             }
 
             if !(i % width as u32 == 0) {
-                border_builder.append_text_default(
-                    (&*" ".repeat(width - 1 - i as usize % width)).to_string(),
-                );
-                if border_builder.content[border_builder.content.len() - 2]
-                    .text
-                    .chars()
-                    .last()
-                    .unwrap_or(' ')
-                    == horizontal_char
-                    && connect_to_horizontal_chars
-                {
-                    border_builder.append_text('┤'.to_string(), color, Color::Reset);
+                let padding_needed = width - 1 - i as usize % width;
+                border_builder.append_text_default((&*" ".repeat(padding_needed)).to_string());
+                if padding_needed == 0 {
+                    let last_char = border_builder
+                        .content
+                        .get(border_builder.content.len().saturating_sub(2))
+                        .and_then(|t| t.text.chars().last())
+                        .unwrap_or(' ');
+                    if last_char == horizontal_char && connect_to_horizontal_chars {
+                        border_builder.append_text('┤'.to_string(), color, Color::Reset);
+                    } else {
+                        border_builder.append_text(vertical_char.to_string(), color, Color::Reset);
+                    }
                 } else {
                     border_builder.append_text(vertical_char.to_string(), color, Color::Reset);
                 }
@@ -309,12 +310,10 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
     );
     e.set_on_hover_func(|holder: &mut Element, _| {
         let config_preset = config_preset!(
-            "onhover" => ValueTypes::Config(ConfigType(
-                config_preset!(
-                    "color" => ValueTypes::Color(Default::default())
-                ),
-                Default::default()
-            ))
+            "color" => ValueTypes::Color(Default::default()),
+            "onhover" => ValueTypes::OnHover(OnHoverType {
+                map: Default::default()
+            })
         );
         let arg_parser = args_parser!(
             ValueTypes::Array(ArrayType {
@@ -325,9 +324,12 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
         );
         let args_parsed = arg_parser.parse(holder.args.to_owned());
         let config: ConfigType = unwrap_val!(args_parsed.get(1).unwrap(), Config);
-        let onhover_config: ConfigType = unwrap_val!(config.1.get("onhover").unwrap(), Config);
-        logger::write_log_debug(args_parsed).unwrap();
-        let color: String = unwrap_val!(onhover_config.1.get("color").unwrap(), Color).into();
+        let color: ColorType = unwrap_val!(config.1.get("color").unwrap(), Color);
+        let onhover_config: OnHoverType = unwrap_val!(config.1.get("onhover").unwrap(), OnHover);
+        let onhover_config = onhover_config.parse_inner(config_preset!(
+            "color" => ValueTypes::Color(color)
+        ));
+        let color: String = unwrap_val!(onhover_config.get("color").unwrap(), Color).into();
         if holder.args.len() <= 1 {
             holder.args.resize(2, Value::Object(Default::default()));
         }
@@ -335,39 +337,6 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
             .as_object_mut()
             .unwrap()
             .insert("color".to_string(), Value::String(color));
-        // if holder.args.len() >= 2 {
-        //     if holder
-        //         .args
-        //         .iter()
-        //         .nth(1)
-        //         .unwrap()
-        //         .as_object()
-        //         .unwrap_or(&Map::new())
-        //         .contains_key("onhover")
-        //     {
-        //         let color: Value = holder
-        //             .args
-        //             .get(1)
-        //             .unwrap()
-        //             .as_object()
-        //             .unwrap()
-        //             .get("onhover")
-        //             .unwrap()
-        //             .as_object()
-        //             .unwrap()
-        //             .get("color")
-        //             .unwrap_or(&json!("default"))
-        //             .clone();
-        //         holder
-        //             .args
-        //             .iter_mut()
-        //             .nth(1)
-        //             .unwrap()
-        //             .as_object_mut()
-        //             .unwrap()
-        //             .insert("color".to_string(), color);
-        //     }
-        // }
     });
     e
 });

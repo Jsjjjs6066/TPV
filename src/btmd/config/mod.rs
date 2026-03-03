@@ -25,6 +25,10 @@ impl ConfigPreset {
     pub fn get_type(&self, key: &str) -> &ValueTypes {
         self.map.get(key).unwrap_or(Default::default())
     }
+
+    pub fn get_map(&self) -> &HashMap<String, ValueTypes> {
+        &self.map
+    }
 }
 
 #[macro_export]
