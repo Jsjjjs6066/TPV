@@ -15,7 +15,7 @@ pub mod new_line;
 pub mod none;
 pub mod para;
 
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 pub use border::BORDER;
 pub use group::GROUP;
@@ -26,40 +26,66 @@ pub use new_line::NEW_LINE;
 pub use none::NONE;
 pub use para::PARA;
 
-static DEFAULT_ON_HOVER_REVERT_FUNC: fn(holder: &mut Element, page: &mut Page) =
-    |holder: &mut Element, _| {
-        holder.args = holder.raw_args.clone();
+static DEFAULT_ON_HOVER_REVERT_FUNC: fn(holder: Arc<RwLock<RawElement>>, page: &mut Page) =
+    |holder: Arc<RwLock<RawElement>>, _| {
+        holder.write().unwrap().args = holder.read().unwrap().raw_args.clone();
     };
 
-#[derive(Clone)]
-pub struct Element {
+/// The `RawElement` is an element owned by a shared pointer.
+/// It only stores the arguments and the children.
+/// Functionality is not defined here. It is only a container.
+/// A developer has to do the functionality by themselves or 
+/// use the default functionality in the `Element` struct.
+/// 
+/// The choice of functionality not being defined here is 
+/// because most of inner and outside functions need a shared pointer
+/// and to make it easier to implement new functionality.
+/// 
+/// The `RawElement` is the base struct for all elements.
+/// It is not meant to be used directly.
+#[derive(Clone, Debug)]
+pub struct RawElement {
+    pub args: Vec<Value>,
+    pub raw_args: Vec<Value>,
+    pub parent: Option<Arc<RwLock<RawElement>>>,
+    pub children: Vec<Arc<RwLock<RawElement>>>,
+    pub element_tag: &'static str,
+    pub position: (u16, u16),
+    pub size: Option<(u16, u16)>,
+    pub hovered: bool,
+    pub arg_parser: fn(
+        parent_size: &(u16, u16),
+    ) -> ArgParser,
     render_func: fn(
-        holder: &mut Element,
+        holder: Arc<RwLock<RawElement>>,
         page: &mut Page,
         args: Vec<ValueTypes>,
         parent_size: &(u16, u16),
         timer: &u32,
         pos: (u32, u32),
     ) -> Content,
-    pub args: Vec<Value>,
-    pub children: Vec<Arc<RwLock<Element>>>,
-    prepare_children_func: fn(&Vec<Value>, &Page) -> Vec<Arc<RwLock<Element>>>,
-    pub element_tag: &'static str,
-    on_hover_func: fn(holder: &mut Element, page: &mut Page),
-    pub size: Option<(u16, u16)>,
-    pub position: (u16, u16),
-    raw_args: Vec<Value>,
-    hovered: bool,
-    on_hover_revert_func: fn(holder: &mut Element, page: &mut Page),
-    arg_parser: fn(
-        parent_size: &(u16, u16),
-    ) -> ArgParser,
+    prepare_children_func: fn(&Vec<Value>, &Page) -> Vec<Arc<RwLock<RawElement>>>,
+    on_hover_func: fn(holder: Arc<RwLock<RawElement>>, page: &mut Page),
+    on_hover_revert_func: fn(holder: Arc<RwLock<RawElement>>, page: &mut Page),
+}
+
+#[derive(Clone)]
+pub struct Element {
+    pub raw_element: Arc<RwLock<RawElement>>,
 }
 
 impl Element {
+    pub fn read(&self) -> RwLockReadGuard<RawElement> {
+        self.raw_element.read().unwrap()
+    }
+
+    pub fn write(&self) -> RwLockWriteGuard<RawElement> {
+        self.raw_element.write().unwrap()
+    }
+
     pub fn new(
         render_func: fn(
-            holder: &mut Element,
+            holder: Arc<RwLock<RawElement>>,
             page: &mut Page,
             args: Vec<ValueTypes>,
             parent_size: &(u16, u16),
@@ -67,7 +93,8 @@ impl Element {
             pos: (u32, u32),
         ) -> Content,
         args: Vec<Value>,
-        prepare_children_function: fn(&Vec<Value>, &Page) -> Vec<Arc<RwLock<Element>>>,
+        parent: Option<Arc<RwLock<RawElement>>>,
+        prepare_children_function: fn(&Vec<Value>, &Page) -> Vec<Arc<RwLock<RawElement>>>,
         element_tag: &'static str,
         position: (u16, u16),
         arg_parser: fn(
@@ -75,23 +102,26 @@ impl Element {
         ) -> ArgParser,
     ) -> Self {
         Element {
-            render_func,
-            args: args.clone(),
-            children: Vec::new(),
-            prepare_children_func: prepare_children_function,
-            element_tag,
-            on_hover_func: |_, _| {},
-            size: None,
-            position: position,
-            raw_args: args,
-            hovered: false,
-            on_hover_revert_func: DEFAULT_ON_HOVER_REVERT_FUNC,
-            arg_parser,
+            raw_element: Arc::new(RwLock::new(RawElement {
+                args: args.clone(),
+                raw_args: args.clone(),
+                parent,
+                children: Vec::new(),
+                element_tag,
+                position,
+                size: None,
+                hovered: false,
+                arg_parser,
+                render_func,
+                prepare_children_func: prepare_children_function,
+                on_hover_func: |_, _| {},
+                on_hover_revert_func: DEFAULT_ON_HOVER_REVERT_FUNC,
+            })),
         }
     }
     pub fn new_default(
         render_func: fn(
-            holder: &mut Element,
+            holder: Arc<RwLock<RawElement>>,
             page: &mut Page,
             args: Vec<ValueTypes>,
             parent_size: &(u16, u16),
@@ -104,31 +134,46 @@ impl Element {
         ) -> ArgParser,
     ) -> Self {
         Element {
-            render_func,
-            args: Vec::new(),
-            children: Vec::new(),
-            prepare_children_func: |_, _| -> Vec<Arc<RwLock<Element>>> { return Vec::new() },
-            element_tag,
-            on_hover_func: |_, _| {},
-            size: None,
-            position: (0, 0),
-            raw_args: Vec::new(),
-            hovered: false,
-            on_hover_revert_func: DEFAULT_ON_HOVER_REVERT_FUNC,
-            arg_parser,
+            raw_element: Arc::new(RwLock::new(RawElement {
+                args: Vec::new(),
+                raw_args: Vec::new(),
+                parent: None,
+                children: Vec::new(),
+                element_tag,
+                position: (0, 0),
+                size: None,
+                hovered: false,
+                arg_parser,
+                render_func,
+                prepare_children_func: |_, _| -> Vec<Arc<RwLock<RawElement>>> { return Vec::new() },
+                on_hover_func: |_, _| {},
+                on_hover_revert_func: DEFAULT_ON_HOVER_REVERT_FUNC,
+            })),
         }
     }
-    pub fn new_from(&self, args: Vec<Value>) -> Self {
+    pub fn new_from(&self, args: Vec<Value>, parent: Arc<RwLock<RawElement>>) -> Self {
         let mut new_element = self.clone();
-        new_element.args = args.clone();
-        new_element.raw_args = args;
-        new_element.children = Vec::new();
+        new_element.raw_element = Arc::new(RwLock::new(RawElement {
+            args: args.clone(),
+            raw_args: args.clone(),
+            parent: Some(parent),
+            children: Vec::new(),
+            element_tag: self.raw_element.read().unwrap().element_tag,
+            position: (0, 0),
+            size: None,
+            hovered: false,
+            arg_parser: self.raw_element.read().unwrap().arg_parser,
+            render_func: self.raw_element.read().unwrap().render_func,
+            prepare_children_func: self.raw_element.read().unwrap().prepare_children_func,
+            on_hover_func: self.raw_element.read().unwrap().on_hover_func,
+            on_hover_revert_func: self.raw_element.read().unwrap().on_hover_revert_func,
+        }));
         new_element
     }
 
     fn prepare_children(&mut self, page: &Page) {
-        if self.children.is_empty() {
-            self.children = (self.prepare_children_func)(&self.args, page);
+        if self.raw_element.read().unwrap().children.is_empty() {
+            self.raw_element.write().unwrap().children = (self.read().prepare_children_func)(&self.raw_element.read().unwrap().args, page);
         }
     }
 
@@ -140,16 +185,16 @@ impl Element {
         pos: (u32, u32),
     ) -> Content {
         self.prepare_children(page);
-        self.position = (pos.0 as u16, pos.1 as u16);
-        let c: Content = (self.render_func)(
-            self,
+        self.raw_element.write().unwrap().position = (pos.0 as u16, pos.1 as u16);
+        let c: Content = (self.write().render_func)(
+            self.raw_element.clone(),
             page,
-            (self.arg_parser)(parent_size).parse(&self.args),
+            (self.raw_element.read().unwrap().arg_parser)(parent_size).parse(&self.raw_element.read().unwrap().args),
             parent_size,
             timer,
             pos,
         );
-        self.size = Some(c.size);
+        self.write().size = Some(c.size);
         c
     }
     pub fn rerender(
@@ -159,61 +204,61 @@ impl Element {
         timer: &u32,
         pos: (u32, u32),
     ) -> Content {
-        self.position = (pos.0 as u16, pos.1 as u16);
-        let c: Content = (self.render_func)(
-            self,
+        self.write().position = (pos.0 as u16, pos.1 as u16);
+        let c: Content = (self.write().render_func)(
+            self.raw_element.clone(),
             page,
-            (self.arg_parser)(parent_size).parse(&self.args),
+            (self.read().arg_parser)(parent_size).parse(&self.read().args),
             parent_size,
             timer,
             pos,
         );
-        self.size = Some(c.size);
+        self.write().size = Some(c.size);
         c
     }
 
     pub fn on_hover(&mut self, page: &mut Page) {
-        self.hovered = true;
-        (self.on_hover_func)(self, page)
+        self.write().hovered = true;
+        (self.read().on_hover_func)(self.raw_element.clone(), page)
     }
 
-    pub fn set_on_hover_func(&mut self, on_hover_func: fn(holder: &mut Element, page: &mut Page)) {
-        self.on_hover_func = on_hover_func;
+    pub fn set_on_hover_func(&mut self, on_hover_func: fn(holder: Arc<RwLock<RawElement>>, page: &mut Page)) {
+        self.write().on_hover_func = on_hover_func;
     }
 
     pub fn get_size(&self) -> Option<(u16, u16)> {
-        self.size
+        self.read().size
     }
 
     pub fn get_position(&self) -> (u16, u16) {
-        self.position
+        self.read().position
     }
 
     pub fn is_hovered(&self) -> bool {
-        self.hovered
+        self.read().hovered
     }
 
     pub fn on_hover_revert(&mut self, page: &mut Page) {
-        (self.on_hover_revert_func)(self, page)
+        (self.read().on_hover_revert_func)(self.raw_element.clone(), page)
     }
 
     pub fn set_on_hover_revert_func(
         &mut self,
-        on_hover_revert_func: fn(holder: &mut Element, page: &mut Page),
+        on_hover_revert_func: fn(holder: Arc<RwLock<RawElement>>, page: &mut Page),
     ) {
-        self.on_hover_revert_func = on_hover_revert_func;
+        self.write().on_hover_revert_func = on_hover_revert_func;
     }
 }
 
 impl Debug for Element {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Element")
-            .field("args", &self.args)
-            .field("children", &self.children)
-            .field("element_tag", &self.element_tag)
-            .field("size", &self.size)
-            .field("position", &self.position)
-            .field("raw_args", &self.raw_args)
+            .field("args", &self.read().args)
+            .field("children", &self.read().children)
+            .field("element_tag", &self.read().element_tag)
+            .field("size", &self.read().size)
+            .field("position", &self.read().position)
+            .field("raw_args", &self.read().raw_args)
             .finish()
     }
 }

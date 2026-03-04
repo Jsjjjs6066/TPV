@@ -99,6 +99,7 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
             )
         },
         vec![],
+        None,
         |args: &Vec<Value>, page: &Page| -> Vec<Arc<RwLock<Element>>> {
             let res = parse_vec_to_vec(
                 (*args
@@ -115,7 +116,7 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
         (0, 0),
         |_| {
             args_parser!(
-                element_array!(),
+                element_array!(parent: GROUP),
                 ValueTypes::Config(ConfigType(config_preset!(
                     "background-color" => ValueTypes::Color(ColorType { value: Color::Reset })
                 ), Default::default()))
@@ -128,7 +129,7 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
             "background-color" => ValueTypes::Color(ColorType { value: Color::Reset }),
             "onhover" => ValueTypes::OnHover(OnHoverType { map: Default::default() })
         );
-        let arg_parser = args_parser!(element_array!(), Config(ConfigType(config_preset, Default::default())));
+        let arg_parser = args_parser!(element_array!(parent: holder), Config(ConfigType(config_preset, Default::default())));
         let args_parsed = arg_parser.parse(&holder.raw_args);
         let config: ConfigType = unwrap_val!(args_parsed.get(1).unwrap(), Config);
         let background_color = unwrap_val!(config.1.get("background-color").unwrap(), Color).value;

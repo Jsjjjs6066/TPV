@@ -9,6 +9,7 @@ use crate::btmd::{
 #[derive(Clone, Debug)]
 pub struct ElementType {
     pub element: Arc<RwLock<Element>>,
+    pub parent: Element,
     pub registry: ElementRegistry,
 }
 
@@ -20,7 +21,7 @@ impl ValueType for ElementType {
                     if let Some(element_type) = arr.get(0).and_then(|v: &Value| v.as_str()) {
                         let args: Vec<Value> = arr[1..].to_vec();
                         Arc::new(RwLock::new(
-                            self.registry.get_element(element_type).new_from(args),
+                            self.registry.get_element(element_type).new_from(args, self.parent.clone()),
                         ))
                     }
                     else {
@@ -29,6 +30,7 @@ impl ValueType for ElementType {
                 },
                 _ => self.element.to_owned(),
             },
+            parent: self.parent.clone(),
             registry: self.registry.to_owned(),
         })
     }
@@ -38,6 +40,7 @@ impl Default for ElementType {
     fn default() -> Self {
         Self {
             element: Arc::new(RwLock::new(NONE.clone())),
+            parent: NONE.raw_element.clone(),
             registry: Default::default(),
         }
     }
@@ -45,10 +48,14 @@ impl Default for ElementType {
 
 #[macro_export]
 macro_rules! element_array {
-    () => {
+    (parent: $parent:expr) => {
         ValueTypes::Array(ArrayType {
             array: vec![],
-            vec_type: Box::new(ValueTypes::Element(Default::default())),
+            vec_type: Box::new(ValueTypes::Element(crate::btmd::values::ElementType {
+                element: Arc::new(RwLock::new(crate::btmd::element::NONE.clone())),
+                parent: $parent,
+                registry: Default::default(),
+            })),
         })
     };
 }
