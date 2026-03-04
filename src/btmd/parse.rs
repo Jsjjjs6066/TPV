@@ -6,13 +6,13 @@ use btmd::{
     page::Page,
 };
 use serde_jsonc::Value;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc};
 
 pub fn parse_json_to_page(json_page: Value) -> Page {
     let title: String = json_page["title"].as_str().unwrap_or("Page").to_string();
     let body_unparsed: Vec<Value> = json_page["body"].as_array().unwrap_or(&Vec::new()).to_vec();
 
-    let mut body: Vec<Arc<RwLock<RawElement>>> = Vec::with_capacity(body_unparsed.len());
+    let mut body: Vec<Arc<parking_lot::RwLock<RawElement>>> = Vec::with_capacity(body_unparsed.len());
 
     let mut registry: ElementRegistry = ElementRegistry::new();
     import_default_elements(&mut registry);
@@ -21,7 +21,7 @@ pub fn parse_json_to_page(json_page: Value) -> Page {
         if let Some(arr) = element.as_array() {
             if let Some(element_type) = arr.get(0).and_then(|v: &Value| v.as_str()) {
                 let args: Vec<Value> = arr[1..].to_vec();
-                let element_instance: Arc<RwLock<RawElement>> = registry.get_element(element_type).new_from(args, None).raw_element;
+                let element_instance: Arc<parking_lot::RwLock<RawElement>> = registry.get_element(element_type).new_from(args, None).raw_element;
                 body.push(element_instance);
             }
         }
@@ -37,15 +37,15 @@ pub fn parse_str_to_page(input: &str) -> Page {
 pub fn parse_vec_to_vec(
     input: Vec<Value>,
     registry: &ElementRegistry,
-    parent: Arc<RwLock<RawElement>>,
-) -> Vec<Arc<RwLock<RawElement>>> {
-    let mut body: Vec<Arc<RwLock<RawElement>>> = Vec::with_capacity(input.len());
+    parent: Arc<parking_lot::RwLock<RawElement>>,
+) -> Vec<Arc<parking_lot::RwLock<RawElement>>> {
+    let mut body: Vec<Arc<parking_lot::RwLock<RawElement>>> = Vec::with_capacity(input.len());
 
     for element in input {
         if let Some(arr) = element.as_array() {
             if let Some(element_type) = arr.get(0).and_then(|v: &Value| v.as_str()) {
                 let args: Vec<Value> = arr[1..].to_vec();
-                let element_instance: Arc<RwLock<RawElement>> = registry.get_element(element_type).new_from(args, Some(parent.clone())).raw_element;
+                let element_instance: Arc<parking_lot::RwLock<RawElement>> = registry.get_element(element_type).new_from(args, Some(parent.clone())).raw_element;
                 body.push(element_instance);
             }
         }
@@ -53,7 +53,7 @@ pub fn parse_vec_to_vec(
 
     body
 }
-pub fn parse_str_to_vec(input: &str, registry: &ElementRegistry, parent: Arc<RwLock<RawElement>>) -> Vec<Arc<RwLock<RawElement>>> {
+pub fn parse_str_to_vec(input: &str, registry: &ElementRegistry, parent: Arc<parking_lot::RwLock<RawElement>>) -> Vec<Arc<parking_lot::RwLock<RawElement>>> {
     let elements: Vec<Value> = serde_jsonc::from_str(input)
         .unwrap_or(Value::Array(vec![]))
         .as_array()

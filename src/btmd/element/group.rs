@@ -1,7 +1,7 @@
 use btmd_macro::unwrap_val;
 use crossterm::style::Color;
 use serde_jsonc::Value;
-use std::sync::{Arc, LazyLock, RwLock};
+use std::sync::{Arc, LazyLock};
 
 use crate::btmd::content::ContentBuilder;
 use crate::btmd::element::{RawElement, ToElement};
@@ -12,7 +12,7 @@ use crate::btmd::{content::Content, element::Element, page::Page, parse::parse_v
 
 pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
     let group = Element::new(
-        |holder: Arc<RwLock<RawElement>>,
+        |holder: Arc<parking_lot::RwLock<RawElement>>,
          page: &mut Page,
          args: Vec<ValueTypes>,
          parent_size: &(u16, u16),
@@ -39,7 +39,7 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
 
             let mut rendered_content: Vec<Content> = Vec::new();
 
-            for element_rc in holder.read().unwrap().children.iter() {
+            for element_rc in holder.read().children.iter() {
                 rendered_content.push(element_rc.to_element().render(
                     page,
                     &(parent_size),
@@ -98,7 +98,7 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
         },
         vec![],
         None,
-        |holder: Arc<RwLock<RawElement>>, args: &Vec<Value>, page: &Page| -> Vec<Arc<RwLock<RawElement>>> {
+        |holder: Arc<parking_lot::RwLock<RawElement>>, args: &Vec<Value>, page: &Page| -> Vec<Arc<parking_lot::RwLock<RawElement>>> {
             let res = parse_vec_to_vec(
                 (*args
                     .get(0)
@@ -123,13 +123,13 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
         },
     );
 
-    group.set_on_hover_func(|holder: Arc<RwLock<RawElement>>, _| {
+    group.set_on_hover_func(|holder: Arc<parking_lot::RwLock<RawElement>>, _| {
         let config_preset = config_preset!(
             "background-color" => ValueTypes::Color(ColorType { value: Color::Reset }),
             "onhover" => ValueTypes::OnHover(OnHoverType { map: Default::default() })
         );
         let arg_parser = args_parser!(element_array!(parent: holder.clone()), Config(ConfigType(config_preset, Default::default())));
-        let args_parsed = arg_parser.parse(&holder.read().unwrap().raw_args);
+        let args_parsed = arg_parser.parse(&holder.read().raw_args);
         let config: ConfigType = unwrap_val!(args_parsed.get(1).unwrap(), Config);
         let background_color = unwrap_val!(config.1.get("background-color").unwrap(), Color).value;
         let onhover_config = unwrap_val!(config.1.get("onhover").unwrap(), OnHover);
@@ -137,7 +137,7 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
             "background-color" => ValueTypes::Color(ColorType { value: background_color })
         ));
         let onhover_background_color: Value = unwrap_val!(onhover_config.get("background-color").unwrap(), Color).into();
-        holder.write().unwrap().args[1]
+        holder.write().args[1]
             .as_object_mut()
             .unwrap()
             .insert("background-color".to_string(), onhover_background_color);

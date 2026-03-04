@@ -2,7 +2,7 @@ use std::fmt::Debug;
 use std::fs::{create_dir, File, OpenOptions};
 use std::io::{Result, Write};
 use std::path::Path;
-use std::sync::{Arc, LazyLock, RwLock};
+use std::sync::{Arc, LazyLock};
 
 use crate::btmd::element::RawElement;
 
@@ -10,9 +10,9 @@ static LOG_DIR: &str = ".btmd_log";
 static LOG_FILE_NAME: &str = "debug.log";
 static PAGE_LOG_FILE_NAME: &str = "page_debug.log";
 
-static LOG_FILE: LazyLock<RwLock<Result<File>>> = LazyLock::new(|| {
+static LOG_FILE: LazyLock<parking_lot::RwLock<Result<File>>> = LazyLock::new(|| {
     create_dir(LOG_DIR).unwrap_or_default();
-    RwLock::new(
+    parking_lot::RwLock::new(
         OpenOptions::new()
             .write(true)
             .append(true)
@@ -22,9 +22,9 @@ static LOG_FILE: LazyLock<RwLock<Result<File>>> = LazyLock::new(|| {
     )
 });
 
-static PAGE_LOG_FILE: LazyLock<RwLock<Result<File>>> = LazyLock::new(|| {
+static PAGE_LOG_FILE: LazyLock<parking_lot::RwLock<Result<File>>> = LazyLock::new(|| {
     create_dir(LOG_DIR).unwrap_or_default();
-    RwLock::new(
+    parking_lot::RwLock::new(
         OpenOptions::new()
             .create(true)
             .write(true)
@@ -34,7 +34,7 @@ static PAGE_LOG_FILE: LazyLock<RwLock<Result<File>>> = LazyLock::new(|| {
 });
 
 pub fn write_log(s: &[u8]) -> Result<()> {
-    let mut file_guard = LOG_FILE.write().unwrap();
+    let mut file_guard = LOG_FILE.write();
     let file = file_guard.as_mut().unwrap();
     file.write_all(s)?;
     file.write_all("\n".as_bytes())?;
@@ -42,13 +42,12 @@ pub fn write_log(s: &[u8]) -> Result<()> {
     Ok(())
 }
 
-pub fn write_page(page_body: &Vec<Arc<RwLock<RawElement>>>) -> Result<()> {
+pub fn write_page(page_body: &Vec<Arc<parking_lot::RwLock<RawElement>>>) -> Result<()> {
     PAGE_LOG_FILE
         .write()
-        .unwrap()
         .as_mut()
         .unwrap()
-        .write_all(format!("{:#?}", page_body).as_bytes())?;
+        .write_all(format!("{:#?}\n", page_body).as_bytes())?;
     Ok(())
 }
 

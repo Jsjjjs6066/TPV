@@ -8,13 +8,13 @@ use btmd::{
     hovered_vec::{Finished, HoveredVec},
 };
 use std::{
-    collections::VecDeque, sync::{Arc, RwLock}
+    collections::VecDeque, sync::{Arc}
 };
 
 #[derive(Clone)]
 pub struct Page {
     pub title: String,
-    pub body: Vec<Arc<RwLock<RawElement>>>,
+    pub body: Vec<Arc<parking_lot::RwLock<RawElement>>>,
     pub body_raw: Value,
     pub cursor: Cursor,
     pub registry: ElementRegistry,
@@ -25,7 +25,7 @@ pub struct Page {
 impl Page {
     pub fn new(
         title: String,
-        body: Vec<Arc<RwLock<RawElement>>>,
+        body: Vec<Arc<parking_lot::RwLock<RawElement>>>,
         body_raw: Value,
         registry: ElementRegistry,
     ) -> Self {
@@ -66,13 +66,17 @@ impl Page {
         self.revert_hovered();
 
         while let Some(node_rc) = queue.pop_front() {
-            let node = node_rc.read().unwrap();
-            if let Some(size) = node.size {
-                let pos = node.position;
+            // Extract data and drop read guard before calling on_hover
+            let (size, pos, children) = {
+                let node = node_rc.read();
+                (node.size, node.position, node.children.clone())
+            };
+
+            if let Some(size) = size {
                 if self.inside(pos.0, size.0, pos.1, size.1) {
                     node_rc.to_element().on_hover(self);
                     hovered.add_element(node_rc.clone());
-                    for neighbor in node.children.iter() {
+                    for neighbor in children.iter() {
                         queue.push_back(neighbor.clone());
                     }
                 }
@@ -128,7 +132,8 @@ impl Page {
     }
 
     pub fn revert_hovered(&mut self) {
-        for element in self.hovered.get_vec().to_owned() {
+        let elements = self.hovered.get_vec().to_owned();
+        for element in elements {
             element.to_element().on_hover_revert(self);
         }
     }

@@ -1,9 +1,8 @@
-use crate::btmd;
+use crate::btmd::{self, logger};
 
 use crate::action::Action;
 use btmd::content::Content;
 use btmd::element::{Element, GROUP};
-use btmd::logger;
 use btmd::page::Page;
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use crossterm::style::Print;
@@ -19,7 +18,7 @@ pub fn render_page(page: &mut Page, timer: &u32, storage: &mut Option<Element>) 
     }
 
     let root = storage.as_mut().unwrap();
-    root.raw_element.write().unwrap().children = std::mem::take(&mut page.body);
+    root.raw_element.write().children = std::mem::take(&mut page.body);
     
     logger::write_log_debug(&root).unwrap();
 
@@ -33,7 +32,7 @@ pub fn render_page(page: &mut Page, timer: &u32, storage: &mut Option<Element>) 
         (0, 0),
     );
 
-    page.body = std::mem::take(&mut root.raw_element.write().unwrap().children);
+    page.body = std::mem::take(&mut root.raw_element.write().children);
 
     page.cursor.position.0 = crossterm::terminal::size().unwrap_or((0, 0)).0 / 2;
     page.cursor.position.1 = crossterm::terminal::size().unwrap_or((0, 0)).1 / 2;
@@ -43,8 +42,6 @@ pub fn render_page(page: &mut Page, timer: &u32, storage: &mut Option<Element>) 
             crossterm::terminal::size().unwrap_or((0, 0)).1 / 2,
         ))
         .expect("");
-
-    logger::write_page(&page.body).expect("Failed to write page");
 
     stdout().flush().expect("Failed to flush stdout");
 
@@ -64,7 +61,7 @@ fn rerender_page(
     }
 
     let root = storage.as_mut().unwrap();
-    root.raw_element.write().unwrap().children = std::mem::take(&mut page.body);
+    root.raw_element.write().children = std::mem::take(&mut page.body);
 
     let rendered_c: Content = root.render(
         page,
@@ -76,7 +73,7 @@ fn rerender_page(
         (0, 0),
     );
 
-    page.body = std::mem::take(&mut root.raw_element.write().unwrap().children);
+    page.body = std::mem::take(&mut root.raw_element.write().children);
 
     let new_render_string = rendered_c.render();
     if new_render_string == last_render_string {

@@ -16,11 +16,11 @@ use crate::{
 };
 
 use crossterm::style::Color;
-use std::sync::{Arc, LazyLock, RwLock};
+use std::sync::{Arc, LazyLock};
 
 pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
     let e = Element::new(
-        |holder: Arc<RwLock<RawElement>>,
+        |holder: Arc<parking_lot::RwLock<RawElement>>,
          page: &mut Page,
          args: Vec<ValueTypes>,
          parent_size: &(u16, u16),
@@ -99,7 +99,7 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
             let mut lines: u16 = 1;
 
             let mut rendered_content: Vec<Content> = Vec::new();
-            for element_rc in holder.read().unwrap().children.iter() {
+            for element_rc in holder.read().children.iter() {
                 let element = element_rc.to_element();
                 if (i + 1) % width as u32 == 0 {
                     rendered_content.push(element.render(
@@ -304,7 +304,7 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
         },
         vec![],
         None,
-        |holder: Arc<RwLock<RawElement>>, args: &Vec<Value>, page: &Page| -> Vec<Arc<RwLock<RawElement>>> {
+        |holder: Arc<parking_lot::RwLock<RawElement>>, args: &Vec<Value>, page: &Page| -> Vec<Arc<parking_lot::RwLock<RawElement>>> {
             let res = parse_vec_to_vec(
                 (*args
                     .get(0)
@@ -342,7 +342,7 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
             )
         },
     );
-    e.set_on_hover_func(|holder: Arc<RwLock<RawElement>>, _| {
+    e.set_on_hover_func(|holder: Arc<parking_lot::RwLock<RawElement>>, _| {
         let config_preset = config_preset!(
             "color" => ValueTypes::Color(Default::default()),
             "background_color" => ValueTypes::Color(Default::default()),
@@ -354,7 +354,7 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
             element_array!(parent: holder.clone()),
             ValueTypes::Config(ConfigType(config_preset, Default::default()))
         );
-        let args_parsed = arg_parser.parse(&holder.read().unwrap().raw_args);
+        let args_parsed = arg_parser.parse(&holder.read().raw_args);
         let config: ConfigType = unwrap_val!(args_parsed.get(1).unwrap(), Config);
         let color: ColorType = unwrap_val!(config.1.get("color").unwrap(), Color);
         let background_color: ColorType =
@@ -367,18 +367,17 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
         let color: Value = unwrap_val!(onhover_config.get("color").unwrap(), Color).into();
         let background_color: Value =
             unwrap_val!(onhover_config.get("background_color").unwrap(), Color).into();
-        if holder.read().unwrap().args.len() <= 1 {
+        if holder.read().args.len() <= 1 {
             holder
                 .write()
-                .unwrap()
                 .args
                 .resize(2, Value::Object(Default::default()));
         }
-        holder.write().unwrap().args[1]
+        holder.write().args[1]
             .as_object_mut()
             .unwrap()
             .insert("color".to_string(), color);
-        holder.write().unwrap().args[1]
+        holder.write().args[1]
             .as_object_mut()
             .unwrap()
             .insert("background_color".to_string(), background_color);

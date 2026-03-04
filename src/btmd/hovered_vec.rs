@@ -2,7 +2,7 @@ use crate::btmd::element::RawElement;
 
 use std::{
     marker::PhantomData,
-    sync::{Arc, RwLock},
+    sync::{Arc},
 };
 
 #[derive(Clone, Debug, Default)]
@@ -12,7 +12,7 @@ pub struct Finished;
 
 #[derive(Clone, Debug, Default)]
 pub struct HoveredVec<State = Finished> {
-    vec: Vec<Arc<RwLock<RawElement>>>,
+    vec: Vec<Arc<parking_lot::RwLock<RawElement>>>,
     marker: PhantomData<State>,
 }
 
@@ -24,13 +24,13 @@ impl HoveredVec {
         }
     }
 
-    pub fn get_vec(&self) -> &Vec<Arc<RwLock<RawElement>>> {
+    pub fn get_vec(&self) -> &Vec<Arc<parking_lot::RwLock<RawElement>>> {
         &self.vec
     }
 }
 
 impl HoveredVec<AddingElements> {
-    pub fn add_element(&mut self, element: Arc<RwLock<RawElement>>) {
+    pub fn add_element(&mut self, element: Arc<parking_lot::RwLock<RawElement>>) {
         self.vec.push(element);
     }
 

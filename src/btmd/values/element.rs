@@ -1,4 +1,4 @@
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc};
 
 use serde_jsonc::Value;
 
@@ -8,8 +8,8 @@ use crate::btmd::{
 
 #[derive(Clone, Debug)]
 pub struct ElementType {
-    pub element: Arc<RwLock<Element>>,
-    pub parent: Arc<RwLock<RawElement>>,
+    pub element: Arc<parking_lot::RwLock<Element>>,
+    pub parent: Arc<parking_lot::RwLock<RawElement>>,
     pub registry: ElementRegistry,
 }
 
@@ -20,7 +20,7 @@ impl ValueType for ElementType {
                 Value::Array(arr) => {
                     if let Some(element_type) = arr.get(0).and_then(|v: &Value| v.as_str()) {
                         let args: Vec<Value> = arr[1..].to_vec();
-                        Arc::new(RwLock::new(
+                        Arc::new(parking_lot::RwLock::new(
                             self.registry.get_element(element_type).new_from(args, Some(self.parent.clone())),
                         ))
                     }
@@ -39,7 +39,7 @@ impl ValueType for ElementType {
 impl Default for ElementType {
     fn default() -> Self {
         Self {
-            element: Arc::new(RwLock::new(NONE.clone())),
+            element: Arc::new(parking_lot::RwLock::new(NONE.clone())),
             parent: NONE.raw_element.clone(),
             registry: Default::default(),
         }
@@ -52,7 +52,7 @@ macro_rules! element_array {
         ValueTypes::Array(ArrayType {
             array: vec![],
             vec_type: Box::new(ValueTypes::Element(crate::btmd::values::ElementType {
-                element: Arc::new(RwLock::new(crate::btmd::element::NONE.clone())),
+                element: Arc::new(parking_lot::RwLock::new(crate::btmd::element::NONE.clone())),
                 parent: $parent,
                 registry: Default::default(),
             })),

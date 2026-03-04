@@ -1,7 +1,7 @@
 use std::cmp::min;
 
 use crate::{args_parser, btmd::{
-    content::Content, element::Element, values::{ConfigType, ValueTypes}
+    content::{Content, Text}, element::Element, values::{ConfigType, ValueTypes}
 }, config_preset};
 use btmd_macro::unwrap_val;
 
@@ -12,7 +12,7 @@ pub static PARA: LazyLock<Element> = LazyLock::new(|| {
         |_, _, args: Vec<ValueTypes>, parent_size: &(u16, u16), _, _| {
             let text = unwrap_val!(args.first().unwrap(), Text);
             Content::new(
-                vec![text.0.clone()],
+                vec![Text::new_default(text.0.text.clone() + "\n")],
                 false,
                 (
                     min(
