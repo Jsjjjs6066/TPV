@@ -1,21 +1,20 @@
-use crate::btmd;
+use crate::btmd::{self, element::{RawElement, ToElement}};
 
 use serde_jsonc::Value;
 
 use btmd::{
     cursor::Cursor,
-    element::{Element, registry::ElementRegistry},
+    element::registry::ElementRegistry,
     hovered_vec::{Finished, HoveredVec},
 };
 use std::{
-    collections::VecDeque,
-    sync::{Arc, RwLock},
+    collections::VecDeque, sync::{Arc, RwLock}
 };
 
 #[derive(Clone)]
 pub struct Page {
     pub title: String,
-    pub body: Vec<Arc<RwLock<Element>>>,
+    pub body: Vec<Arc<RwLock<RawElement>>>,
     pub body_raw: Value,
     pub cursor: Cursor,
     pub registry: ElementRegistry,
@@ -26,7 +25,7 @@ pub struct Page {
 impl Page {
     pub fn new(
         title: String,
-        body: Vec<Arc<RwLock<Element>>>,
+        body: Vec<Arc<RwLock<RawElement>>>,
         body_raw: Value,
         registry: ElementRegistry,
     ) -> Self {
@@ -67,11 +66,11 @@ impl Page {
         self.revert_hovered();
 
         while let Some(node_rc) = queue.pop_front() {
-            let mut node = node_rc.write().unwrap();
-            if let Some(size) = node.get_size() {
-                let pos = node.get_position();
+            let node = node_rc.read().unwrap();
+            if let Some(size) = node.size {
+                let pos = node.position;
                 if self.inside(pos.0, size.0, pos.1, size.1) {
-                    node.on_hover(self);
+                    node_rc.to_element().on_hover(self);
                     hovered.add_element(node_rc.clone());
                     for neighbor in node.children.iter() {
                         queue.push_back(neighbor.clone());
@@ -130,7 +129,7 @@ impl Page {
 
     pub fn revert_hovered(&mut self) {
         for element in self.hovered.get_vec().to_owned() {
-            element.write().unwrap().on_hover_revert(self);
+            element.to_element().on_hover_revert(self);
         }
     }
 }

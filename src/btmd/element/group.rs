@@ -1,18 +1,18 @@
 use btmd_macro::unwrap_val;
 use crossterm::style::Color;
 use serde_jsonc::Value;
-use std::cell::RefCell;
 use std::sync::{Arc, LazyLock, RwLock};
 
 use crate::btmd::content::ContentBuilder;
+use crate::btmd::element::{RawElement, ToElement};
 use crate::btmd::values::ValueTypes::Config;
 use crate::btmd::values::{ArrayType, ColorType, ConfigType, OnHoverType, ValueTypes};
 use crate::{args_parser, config_preset, element_array};
 use crate::btmd::{content::Content, element::Element, page::Page, parse::parse_vec_to_vec};
 
 pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
-    let mut group = Element::new(
-        |holder: &mut Element,
+    let group = Element::new(
+        |holder: Arc<RwLock<RawElement>>,
          page: &mut Page,
          args: Vec<ValueTypes>,
          parent_size: &(u16, u16),
@@ -39,9 +39,8 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
 
             let mut rendered_content: Vec<Content> = Vec::new();
 
-            for element_rc in holder.children.iter() {
-                let mut element = element_rc.write().unwrap();
-                rendered_content.push(element.render(
+            for element_rc in holder.read().unwrap().children.iter() {
+                rendered_content.push(element_rc.to_element().render(
                     page,
                     &(parent_size),
                     timer,
@@ -95,12 +94,11 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
             border_builder.build(
                 true,
                 (parent_size.0, lines),
-                RefCell::new(holder.to_owned()),
             )
         },
         vec![],
         None,
-        |args: &Vec<Value>, page: &Page| -> Vec<Arc<RwLock<Element>>> {
+        |holder: Arc<RwLock<RawElement>>, args: &Vec<Value>, page: &Page| -> Vec<Arc<RwLock<RawElement>>> {
             let res = parse_vec_to_vec(
                 (*args
                     .get(0)
@@ -109,6 +107,7 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
                     .unwrap_or(&vec![]))
                 .clone(),
                 &page.registry,
+                holder
             );
             res
         },
@@ -116,7 +115,7 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
         (0, 0),
         |_| {
             args_parser!(
-                element_array!(parent: GROUP),
+                element_array!(parent: GROUP.raw_element.clone()),
                 ValueTypes::Config(ConfigType(config_preset!(
                     "background-color" => ValueTypes::Color(ColorType { value: Color::Reset })
                 ), Default::default()))
@@ -124,13 +123,13 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
         },
     );
 
-    group.set_on_hover_func(|holder: &mut Element, _| {
+    group.set_on_hover_func(|holder: Arc<RwLock<RawElement>>, _| {
         let config_preset = config_preset!(
             "background-color" => ValueTypes::Color(ColorType { value: Color::Reset }),
             "onhover" => ValueTypes::OnHover(OnHoverType { map: Default::default() })
         );
-        let arg_parser = args_parser!(element_array!(parent: holder), Config(ConfigType(config_preset, Default::default())));
-        let args_parsed = arg_parser.parse(&holder.raw_args);
+        let arg_parser = args_parser!(element_array!(parent: holder.clone()), Config(ConfigType(config_preset, Default::default())));
+        let args_parsed = arg_parser.parse(&holder.read().unwrap().raw_args);
         let config: ConfigType = unwrap_val!(args_parsed.get(1).unwrap(), Config);
         let background_color = unwrap_val!(config.1.get("background-color").unwrap(), Color).value;
         let onhover_config = unwrap_val!(config.1.get("onhover").unwrap(), OnHover);
@@ -138,7 +137,7 @@ pub static GROUP: LazyLock<Element> = LazyLock::new(|| {
             "background-color" => ValueTypes::Color(ColorType { value: background_color })
         ));
         let onhover_background_color: Value = unwrap_val!(onhover_config.get("background-color").unwrap(), Color).into();
-        holder.args[1]
+        holder.write().unwrap().args[1]
             .as_object_mut()
             .unwrap()
             .insert("background-color".to_string(), onhover_background_color);

@@ -14,12 +14,14 @@ use std::io::{stdout, Write};
 
 pub fn render_page(page: &mut Page, timer: &u32, storage: &mut Option<Element>) -> Content {
     if storage.is_none() {
-        let b: Element = GROUP.new_from(vec![json!([]), json!({"min-height": "max"})]);
+        let b: Element = GROUP.new_from(vec![json!([]), json!({"min-height": "max"})], None);
         *storage = Some(b);
     }
 
     let root = storage.as_mut().unwrap();
-    root.children = std::mem::take(&mut page.body);
+    root.raw_element.write().unwrap().children = std::mem::take(&mut page.body);
+    
+    logger::write_log_debug(&root).unwrap();
 
     let rendered_c: Content = root.render(
         page,
@@ -31,7 +33,7 @@ pub fn render_page(page: &mut Page, timer: &u32, storage: &mut Option<Element>) 
         (0, 0),
     );
 
-    page.body = std::mem::take(&mut root.children);
+    page.body = std::mem::take(&mut root.raw_element.write().unwrap().children);
 
     page.cursor.position.0 = crossterm::terminal::size().unwrap_or((0, 0)).0 / 2;
     page.cursor.position.1 = crossterm::terminal::size().unwrap_or((0, 0)).1 / 2;
@@ -41,28 +43,6 @@ pub fn render_page(page: &mut Page, timer: &u32, storage: &mut Option<Element>) 
             crossterm::terminal::size().unwrap_or((0, 0)).1 / 2,
         ))
         .expect("");
-
-    // let mut line: u16 = 1;
-    // let mut i: usize = 0;
-    // for c in body_content {
-    //     for char in c.text.chars() {
-    //         if char == '\u{1b}' {
-    //             write!(stdout(), "{}", char).expect("Failed to write character");
-    //         }
-    //         if char == '\n' {
-    //             line += 1;
-    //             stdout().execute(cursor::MoveTo(1, line)).expect("");
-    //             i = 0;
-    //             continue;
-    //         }
-    //         if i % (crossterm::terminal::size().unwrap_or((0, 0)).0 - 2) as usize == 0 && i != 0 {
-    //             line += 1;
-    //             stdout().execute(cursor::MoveTo(1, line)).expect("");
-    //         }
-    //         write!(stdout(), "{}", char).expect("Failed to write character");
-    //         i += 1;
-    //     }
-    // }
 
     logger::write_page(&page.body).expect("Failed to write page");
 
@@ -79,12 +59,12 @@ fn rerender_page(
     storage: &mut Option<Element>,
 ) -> Content {
     if storage.is_none() {
-        let b: Element = GROUP.new_from(vec![json!([]), json!({"min-height": "max"})]);
+        let b: Element = GROUP.new_from(vec![json!([]), json!({"min-height": "max"})], None);
         *storage = Some(b);
     }
 
     let root = storage.as_mut().unwrap();
-    root.children = std::mem::take(&mut page.body);
+    root.raw_element.write().unwrap().children = std::mem::take(&mut page.body);
 
     let rendered_c: Content = root.render(
         page,
@@ -96,7 +76,7 @@ fn rerender_page(
         (0, 0),
     );
 
-    page.body = std::mem::take(&mut root.children);
+    page.body = std::mem::take(&mut root.raw_element.write().unwrap().children);
 
     let new_render_string = rendered_c.render();
     if new_render_string == last_render_string {

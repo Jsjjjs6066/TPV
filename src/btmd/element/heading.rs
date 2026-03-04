@@ -1,7 +1,3 @@
-use std::
-    cell::RefCell
-;
-
 use btmd_macro::unwrap_val;
 use crossterm::style::Color;
 use figlet_rs::FIGfont;
@@ -15,7 +11,7 @@ use crate::{
 
 pub static HEADING: LazyLock<Element> = LazyLock::new(|| {
     Element::new_default(
-        |holder: &mut Element, _, args: Vec<ValueTypes>, parent_size: &(u16, u16), timer: &u32, _| {
+        |_, _, args: Vec<ValueTypes>, parent_size: &(u16, u16), timer: &u32, _| {
             let font: FIGfont = FIGfont::standard().unwrap();
             let text: TextType = unwrap_val!(args.first().unwrap(), Text);
             let config: ConfigType = unwrap_val!(args.get(1).unwrap(), Config);
@@ -67,7 +63,6 @@ pub static HEADING: LazyLock<Element> = LazyLock::new(|| {
                 vec![Text::new(returned_heading, Color::Reset, Color::Reset)],
                 false,
                 (width, height),
-                RefCell::new(holder.to_owned()),
             )
         },
         "heading",

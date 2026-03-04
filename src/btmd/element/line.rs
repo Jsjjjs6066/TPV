@@ -6,18 +6,17 @@ use crate::{
     }, config_preset
 };
 
-use std::{cell::RefCell, sync::LazyLock};
+use std::sync::LazyLock;
 
 pub static LINE: LazyLock<Element> = LazyLock::new(|| {
     Element::new_default(
-        |holder, _, args: Vec<ValueTypes>, parent_size: &(u16, u16), _, _| {
+        |_, _, args: Vec<ValueTypes>, parent_size: &(u16, u16), _, _| {
             let char: char = unwrap_val!(args.first().unwrap(), Char).0;
             if char == '\n' {
                 return Content::new(
                     vec![Text::new_default("\n".to_string())],
                     false,
                     (parent_size.0, 1),
-                    RefCell::new(holder.to_owned()),
                 );
             }
             if char == ' ' {
@@ -25,7 +24,6 @@ pub static LINE: LazyLock<Element> = LazyLock::new(|| {
                     vec![Text::new_default(String::new())],
                     false,
                     (parent_size.0, 1),
-                    RefCell::new(holder.to_owned()),
                 );
             }
             if char == '-' {
@@ -35,14 +33,12 @@ pub static LINE: LazyLock<Element> = LazyLock::new(|| {
                     )],
                     true,
                     (parent_size.0, 1),
-                    RefCell::new(holder.to_owned()),
                 );
             }
             Content::new(
                 vec![Text::new_default(char.to_string().repeat(parent_size.0 as usize))],
                 true,
                 (parent_size.0, 1),
-                RefCell::new(holder.to_owned()),
             )
         },
         "line",

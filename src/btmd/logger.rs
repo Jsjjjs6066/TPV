@@ -1,12 +1,10 @@
 use std::fmt::Debug;
-use std::fs::{File, OpenOptions, create_dir};
+use std::fs::{create_dir, File, OpenOptions};
 use std::io::{Result, Write};
 use std::path::Path;
 use std::sync::{Arc, LazyLock, RwLock};
 
-use crate::btmd;
-
-use btmd::element::Element;
+use crate::btmd::element::RawElement;
 
 static LOG_DIR: &str = ".btmd_log";
 static LOG_FILE_NAME: &str = "debug.log";
@@ -44,7 +42,7 @@ pub fn write_log(s: &[u8]) -> Result<()> {
     Ok(())
 }
 
-pub fn write_page(page_body: &Vec<Arc<RwLock<Element>>>) -> Result<()> {
+pub fn write_page(page_body: &Vec<Arc<RwLock<RawElement>>>) -> Result<()> {
     PAGE_LOG_FILE
         .write()
         .unwrap()

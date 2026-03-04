@@ -5,25 +5,21 @@ use crate::{
     args_parser,
     btmd::{
         content::{Content, ContentBuilder},
-        element::{Element, RawElement},
+        element::{Element, RawElement, ToElement},
         page::Page,
         parse::parse_vec_to_vec,
         values::{
-            int::Int, ArrayType, BoolType, ColorType, ConfigType, OnHoverType, SizeType, ValueTypes,
+            ArrayType, BoolType, ColorType, ConfigType, OnHoverType, SizeType, ValueTypes, int::Int
         },
     },
     config_preset, element_array,
 };
 
 use crossterm::style::Color;
-use std::{
-    cell::RefCell,
-    ops::{Deref, DerefMut},
-    sync::{Arc, LazyLock, RwLock},
-};
+use std::sync::{Arc, LazyLock, RwLock};
 
 pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
-    let mut e = Element::new(
+    let e = Element::new(
         |holder: Arc<RwLock<RawElement>>,
          page: &mut Page,
          args: Vec<ValueTypes>,
@@ -104,7 +100,7 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
 
             let mut rendered_content: Vec<Content> = Vec::new();
             for element_rc in holder.read().unwrap().children.iter() {
-                let mut element = element_rc.write().unwrap();
+                let element = element_rc.to_element();
                 if (i + 1) % width as u32 == 0 {
                     rendered_content.push(element.render(
                         page,
@@ -304,12 +300,11 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
             border_builder.build(
                 true,
                 (parent_size.0, lines + 2),
-                RefCell::new(holder.to_owned()),
             )
         },
         vec![],
         None,
-        |args: &Vec<Value>, page: &Page| -> Vec<Arc<RwLock<Element>>> {
+        |holder: Arc<RwLock<RawElement>>, args: &Vec<Value>, page: &Page| -> Vec<Arc<RwLock<RawElement>>> {
             let res = parse_vec_to_vec(
                 (*args
                     .get(0)
@@ -318,6 +313,7 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
                     .unwrap_or(&vec![]))
                 .clone(),
                 &page.registry,
+                holder
             );
             res
         },
@@ -346,7 +342,7 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
             )
         },
     );
-    e.set_on_hover_func(|holder: Element, _| {
+    e.set_on_hover_func(|holder: Arc<RwLock<RawElement>>, _| {
         let config_preset = config_preset!(
             "color" => ValueTypes::Color(Default::default()),
             "background_color" => ValueTypes::Color(Default::default()),
@@ -373,7 +369,7 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
             unwrap_val!(onhover_config.get("background_color").unwrap(), Color).into();
         if holder.read().unwrap().args.len() <= 1 {
             holder
-                .read()
+                .write()
                 .unwrap()
                 .args
                 .resize(2, Value::Object(Default::default()));

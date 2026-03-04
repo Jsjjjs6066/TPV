@@ -1,12 +1,9 @@
-use std::cell::RefCell;
-
 use crossterm::style::Color;
 
 use crate::btmd;
 
 use btmd::{
     content::{Content, Text},
-    element::Element,
 };
 
 pub struct ContentBuilder {
@@ -28,7 +25,7 @@ impl ContentBuilder {
         self.content.push(Text::new_default(text))
     }
 
-    pub fn build(self, rerender_needed: bool, size: (u16, u16), holder: RefCell<Element>) -> Content {
+    pub fn build(self, rerender_needed: bool, size: (u16, u16)) -> Content {
         Content {
             text: self.content,
             rerender_needed: rerender_needed,
@@ -36,7 +33,6 @@ impl ContentBuilder {
             current_text_index: 0,
             current_char_index: 0,
             position: None,
-            holder
         }
     }
 }

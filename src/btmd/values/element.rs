@@ -3,13 +3,13 @@ use std::sync::{Arc, RwLock};
 use serde_jsonc::Value;
 
 use crate::btmd::{
-    element::{Element, NONE, registry::ElementRegistry}, values::{ValueType, ValueTypes}
+    element::{Element, NONE, RawElement, registry::ElementRegistry}, values::{ValueType, ValueTypes}
 };
 
 #[derive(Clone, Debug)]
 pub struct ElementType {
     pub element: Arc<RwLock<Element>>,
-    pub parent: Element,
+    pub parent: Arc<RwLock<RawElement>>,
     pub registry: ElementRegistry,
 }
 
@@ -21,7 +21,7 @@ impl ValueType for ElementType {
                     if let Some(element_type) = arr.get(0).and_then(|v: &Value| v.as_str()) {
                         let args: Vec<Value> = arr[1..].to_vec();
                         Arc::new(RwLock::new(
-                            self.registry.get_element(element_type).new_from(args, self.parent.clone()),
+                            self.registry.get_element(element_type).new_from(args, Some(self.parent.clone())),
                         ))
                     }
                     else {

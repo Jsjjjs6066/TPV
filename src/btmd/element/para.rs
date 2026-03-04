@@ -1,4 +1,4 @@
-use std::{cell::RefCell, cmp::min};
+use std::cmp::min;
 
 use crate::{args_parser, btmd::{
     content::Content, element::Element, values::{ConfigType, ValueTypes}
@@ -9,7 +9,7 @@ use std::sync::LazyLock;
 
 pub static PARA: LazyLock<Element> = LazyLock::new(|| {
     Element::new_default(
-        |holder, _, args: Vec<ValueTypes>, parent_size: &(u16, u16), _, _| {
+        |_, _, args: Vec<ValueTypes>, parent_size: &(u16, u16), _, _| {
             let text = unwrap_val!(args.first().unwrap(), Text);
             Content::new(
                 vec![text.0.clone()],
@@ -21,7 +21,6 @@ pub static PARA: LazyLock<Element> = LazyLock::new(|| {
                     ),
                     text.0.text.lines().count() as u16,
                 ),
-                RefCell::new(holder.to_owned()),
             )
         },
         "para",

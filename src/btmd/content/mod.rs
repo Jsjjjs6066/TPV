@@ -1,14 +1,8 @@
 pub mod content_builder;
 pub mod text;
 
-use std::cell::RefCell;
-
 pub use content_builder::ContentBuilder;
 pub use text::Text;
-
-use crate::btmd;
-
-use btmd::element::Element;
 
 #[derive(Clone)]
 pub struct Content {
@@ -18,11 +12,10 @@ pub struct Content {
     current_text_index: usize,
     current_char_index: usize,
     pub position: Option<(u16, u16)>,
-    pub holder: RefCell<Element>,
 }
 
 impl Content {
-    pub fn new(text: Vec<Text>, rerender_needed: bool, size: (u16, u16), holder: RefCell<Element>) -> Content {
+    pub fn new(text: Vec<Text>, rerender_needed: bool, size: (u16, u16)) -> Content {
         Content {
             text,
             rerender_needed,
@@ -30,7 +23,6 @@ impl Content {
             current_text_index: 0,
             current_char_index: 0,
             position: None,
-            holder,
         }
     }
 
