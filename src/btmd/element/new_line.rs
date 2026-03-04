@@ -1,6 +1,6 @@
 use std::{cell::RefCell, sync::LazyLock};
 
-use crate::btmd::{content::{Content, Text}, element::Element};
+use crate::{args_parser, btmd::{content::{Content, Text}, element::Element}};
 
 pub static NEW_LINE: LazyLock<Element> = LazyLock::new(||
     Element::new_default(
@@ -11,6 +11,7 @@ pub static NEW_LINE: LazyLock<Element> = LazyLock::new(||
                 (0, 0),
                 RefCell::new(holder.to_owned()),
             )
-        }, "new_line"
+        }, "new_line",
+        |_| args_parser!(),
     )
 );

@@ -1,3 +1,5 @@
+use crate::btmd::args::ArgParser;
+use crate::btmd::values::ValueTypes;
 use crate::btmd::{content::Content, page::Page};
 
 pub mod registry;
@@ -34,7 +36,7 @@ pub struct Element {
     render_func: fn(
         holder: &mut Element,
         page: &mut Page,
-        args: Vec<Value>,
+        args: Vec<ValueTypes>,
         parent_size: &(u16, u16),
         timer: &u32,
         pos: (u32, u32),
@@ -49,6 +51,9 @@ pub struct Element {
     raw_args: Vec<Value>,
     hovered: bool,
     on_hover_revert_func: fn(holder: &mut Element, page: &mut Page),
+    arg_parser: fn(
+        parent_size: &(u16, u16),
+    ) -> ArgParser,
 }
 
 impl Element {
@@ -56,7 +61,7 @@ impl Element {
         render_func: fn(
             holder: &mut Element,
             page: &mut Page,
-            args: Vec<Value>,
+            args: Vec<ValueTypes>,
             parent_size: &(u16, u16),
             timer: &u32,
             pos: (u32, u32),
@@ -65,6 +70,9 @@ impl Element {
         prepare_children_function: fn(&Vec<Value>, &Page) -> Vec<Arc<RwLock<Element>>>,
         element_tag: &'static str,
         position: (u16, u16),
+        arg_parser: fn(
+            parent_size: &(u16, u16),
+        ) -> ArgParser,
     ) -> Self {
         Element {
             render_func,
@@ -78,18 +86,22 @@ impl Element {
             raw_args: args,
             hovered: false,
             on_hover_revert_func: DEFAULT_ON_HOVER_REVERT_FUNC,
+            arg_parser,
         }
     }
     pub fn new_default(
         render_func: fn(
             holder: &mut Element,
             page: &mut Page,
-            args: Vec<Value>,
+            args: Vec<ValueTypes>,
             parent_size: &(u16, u16),
             timer: &u32,
             pos: (u32, u32),
         ) -> Content,
         element_tag: &'static str,
+        arg_parser: fn(
+            parent_size: &(u16, u16),
+        ) -> ArgParser,
     ) -> Self {
         Element {
             render_func,
@@ -103,6 +115,7 @@ impl Element {
             raw_args: Vec::new(),
             hovered: false,
             on_hover_revert_func: DEFAULT_ON_HOVER_REVERT_FUNC,
+            arg_parser,
         }
     }
     pub fn new_from(&self, args: Vec<Value>) -> Self {
@@ -128,7 +141,14 @@ impl Element {
     ) -> Content {
         self.prepare_children(page);
         self.position = (pos.0 as u16, pos.1 as u16);
-        let c: Content = (self.render_func)(self, page, self.args.clone(), parent_size, timer, pos);
+        let c: Content = (self.render_func)(
+            self,
+            page,
+            (self.arg_parser)(parent_size).parse(&self.args),
+            parent_size,
+            timer,
+            pos,
+        );
         self.size = Some(c.size);
         c
     }
@@ -140,7 +160,14 @@ impl Element {
         pos: (u32, u32),
     ) -> Content {
         self.position = (pos.0 as u16, pos.1 as u16);
-        let c: Content = (self.render_func)(self, page, self.args.clone(), parent_size, timer, pos);
+        let c: Content = (self.render_func)(
+            self,
+            page,
+            (self.arg_parser)(parent_size).parse(&self.args),
+            parent_size,
+            timer,
+            pos,
+        );
         self.size = Some(c.size);
         c
     }

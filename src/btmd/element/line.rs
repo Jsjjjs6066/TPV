@@ -1,22 +1,17 @@
 use btmd_macro::unwrap_val;
-use serde_jsonc::Value;
 
 use crate::{
-    args_parser, config_preset, btmd::{
-        content::{Content, Text}, element::Element, values::{CharType, ValueTypes}
-    }
+    args_parser, btmd::{
+        content::{Content, Text}, element::Element, values::{CharType, ConfigType, ValueTypes}
+    }, config_preset
 };
 
 use std::{cell::RefCell, sync::LazyLock};
 
 pub static LINE: LazyLock<Element> = LazyLock::new(|| {
     Element::new_default(
-        |holder, _, args: Vec<Value>, parent_size: &(u16, u16), _, _| {
-            #[allow(unused)]
-            let config_parser = config_preset!();
-            let arg_parser = args_parser!(ValueTypes::Char(CharType('─')));
-            let args_parsed = arg_parser.parse(args);
-            let char: char = unwrap_val!(args_parsed.first().unwrap(), Char).0;
+        |holder, _, args: Vec<ValueTypes>, parent_size: &(u16, u16), _, _| {
+            let char: char = unwrap_val!(args.first().unwrap(), Char).0;
             if char == '\n' {
                 return Content::new(
                     vec![Text::new_default("\n".to_string())],
@@ -51,5 +46,11 @@ pub static LINE: LazyLock<Element> = LazyLock::new(|| {
             )
         },
         "line",
+        |_| args_parser!(
+            ValueTypes::Char(CharType('─')),
+            ValueTypes::Config(ConfigType(config_preset!(
+
+            ), Default::default()))
+        ),
     )
 });

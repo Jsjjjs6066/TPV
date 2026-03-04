@@ -23,30 +23,11 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
     let mut e = Element::new(
         |holder: &mut Element,
          page: &mut Page,
-         args: Vec<Value>,
+         args: Vec<ValueTypes>,
          parent_size: &(u16, u16),
          timer: &u32,
          pos: (u32, u32)| {
-            let config_preset = config_preset!(
-                "min-height" => ValueTypes::Size(SizeType {
-                    size: Int::Bit16U(0),
-                    min: Int::Bit16U(0),
-                    max: Int::Bit16U(parent_size.1 - 2),
-                    auto: Int::Bit16U(0),
-                }),
-                "connect-to-horizontal-chars" => ValueTypes::Bool(BoolType { value: true }),
-                "color" => ValueTypes::Color(Default::default()),
-                "background-color" => ValueTypes::Color(Default::default())
-            );
-            let arg_parser = args_parser!(
-                ValueTypes::Array(ArrayType {
-                    array: vec![],
-                    vec_type: Box::new(ValueTypes::Element(Default::default()))
-                }),
-                ValueTypes::Config(ConfigType(config_preset, Default::default()))
-            );
-            let args_parsed = arg_parser.parse(args);
-            let config: ConfigType = unwrap_val!(args_parsed.get(1).unwrap(), Config);
+            let config: ConfigType = unwrap_val!(args.get(1).unwrap(), Config);
             let min_height: u16 = unwrap_val!(config.1.get("min-height").unwrap(), Size)
                 .size
                 .into();
@@ -309,6 +290,23 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
         },
         "border",
         (0, 0),
+        |parent_size: &(u16, u16)| args_parser!(
+            ValueTypes::Array(ArrayType {
+                array: Default::default(),
+                vec_type: Box::new(ValueTypes::Element(Default::default()))
+            }),
+            ValueTypes::Config(ConfigType(config_preset!(
+                "min-height" => ValueTypes::Size(SizeType {
+                    size: Int::Bit16U(0),
+                    min: Int::Bit16U(0),
+                    max: Int::Bit16U(parent_size.1 - 2),
+                    auto: Int::Bit16U(0),
+                }),
+                "connect-to-horizontal-chars" => ValueTypes::Bool(BoolType { value: true }),
+                "color" => ValueTypes::Color(Default::default()),
+                "background-color" => ValueTypes::Color(Default::default())
+            ), Default::default()))
+        ),
     );
     e.set_on_hover_func(|holder: &mut Element, _| {
         let config_preset = config_preset!(
@@ -325,7 +323,7 @@ pub static BORDER: LazyLock<Element> = LazyLock::new(|| {
             }),
             ValueTypes::Config(ConfigType(config_preset, Default::default()))
         );
-        let args_parsed = arg_parser.parse(holder.raw_args.to_owned());
+        let args_parsed = arg_parser.parse(&holder.raw_args);
         let config: ConfigType = unwrap_val!(args_parsed.get(1).unwrap(), Config);
         let color: ColorType = unwrap_val!(config.1.get("color").unwrap(), Color);
         let background_color: ColorType = unwrap_val!(config.1.get("background_color").unwrap(), Color);

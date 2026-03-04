@@ -5,28 +5,20 @@ use std::
 use btmd_macro::unwrap_val;
 use crossterm::style::Color;
 use figlet_rs::FIGfont;
-use serde_jsonc::Value;
 use {std::sync::LazyLock, usize};
 
-use crate::{args_parser, config_preset, btmd::{
-    content::{Content, Text}, element::Element, values::{ConfigType, IntType, TextType, ValueTypes, int::Int}
-}};
+use crate::{
+    args_parser, btmd::{
+        content::{Content, Text}, element::Element, values::{ConfigType, IntType, TextType, ValueTypes, int::Int}
+    }, config_preset
+};
 
 pub static HEADING: LazyLock<Element> = LazyLock::new(|| {
     Element::new_default(
-        |holder: &mut Element, _, args: Vec<Value>, parent_size: &(u16, u16), timer: &u32, _| {
+        |holder: &mut Element, _, args: Vec<ValueTypes>, parent_size: &(u16, u16), timer: &u32, _| {
             let font: FIGfont = FIGfont::standard().unwrap();
-            let config_preset = config_preset!(
-                "speed" => ValueTypes::Int(IntType {
-                    int: Int::Bit8U(7),
-                    min: Int::Bit8U(1),
-                    max: Int::Bit8U(10),
-                })
-            );
-            let arg_parser = args_parser!(ValueTypes::Text(Default::default()), ValueTypes::Config(ConfigType(config_preset, Default::default())));
-            let args_parsed = arg_parser.parse(args.clone());
-            let text: TextType = unwrap_val!(args_parsed.first().unwrap_or(arg_parser.preset.vec.first().unwrap()), Text);
-            let config: ConfigType = unwrap_val!(args_parsed.iter().nth(1).unwrap_or(arg_parser.preset.vec.iter().nth(1).unwrap()), Config);
+            let text: TextType = unwrap_val!(args.first().unwrap(), Text);
+            let config: ConfigType = unwrap_val!(args.get(1).unwrap(), Config);
             let heading: String = font.convert(&text.0.text).unwrap().to_string();
             let speed: u8 = 11
                 - u8::from(unwrap_val!(config.1.get("speed").unwrap(), Int).int);
@@ -79,5 +71,15 @@ pub static HEADING: LazyLock<Element> = LazyLock::new(|| {
             )
         },
         "heading",
+        |_| args_parser!(
+            ValueTypes::Text(Default::default()),
+            ValueTypes::Config(ConfigType(config_preset!(
+                "speed" => ValueTypes::Int(IntType {
+                    int: Int::Bit8U(7),
+                    min: Int::Bit8U(1),
+                    max: Int::Bit8U(10),
+                })
+            ), Default::default()))
+        ),
     )
 });

@@ -22,10 +22,10 @@
 				}
 			]
 		], {
-			"background-color": [123, 123, 123]/* ,
+			"background-color": [123, 123, 123],
 			"onhover": {
-				"background-color": [123, 123, 123]
-			} */
+				"background-color": [255, 255, 255]
+			}
 		}]
 	]
 }

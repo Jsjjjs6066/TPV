@@ -1,4 +1,4 @@
-use crate::btmd::{content::{Content, Text}, element::Element};
+use crate::{args_parser, btmd::{content::{Content, Text}, element::Element}};
 use std::{cell::RefCell, sync::LazyLock};
 
 pub static NONE: LazyLock<Element> = LazyLock::new(||
@@ -8,6 +8,7 @@ pub static NONE: LazyLock<Element> = LazyLock::new(||
             false,
             (0, 0),
             RefCell::new(holder.to_owned()),
-        ), "none"
+        ), "none",
+        |_| args_parser!(),
     )
 );

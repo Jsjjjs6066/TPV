@@ -19,7 +19,7 @@ impl ArgParser {
         }
     }
 
-    pub fn parse(&self, vec_to_parse: Vec<Value>) -> Vec<ValueTypes> {
+    pub fn parse(&self, vec_to_parse: &Vec<Value>) -> Vec<ValueTypes> {
         let mut vec_preset = self.preset.vec.clone();
         let mut vec_to_parse_iter = vec_to_parse.iter()
             .map(Some)

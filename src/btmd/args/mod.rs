@@ -22,4 +22,7 @@ macro_rules! args_parser {
     ($($name:expr),+) => {
         $crate::btmd::args::ArgParser::new($crate::btmd::args::ArgPreset::new(vec![$($name),+]))
     };
+    () => {
+        $crate::btmd::args::ArgParser::new($crate::btmd::args::ArgPreset::new(vec![]))
+    };
 }

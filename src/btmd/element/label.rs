@@ -1,21 +1,19 @@
 use btmd_macro::unwrap_val;
 use crossterm::style::Color;
-use serde_jsonc::Value;
 use std::sync::LazyLock;
 use std::{cell::RefCell, cmp::min};
 
 use crate::{
     args_parser, btmd::{
-        content::{Content, Text}, element::Element, values::{TextType, ValueTypes}
+        content::{Content, Text}, element::Element, values::{ConfigType, ValueTypes}
     }
 };
+use crate::config_preset;
 
 pub static LABEL: LazyLock<Element> = LazyLock::new(|| {
     Element::new_default(
-        |holder, _, args: Vec<Value>, parent_size: &(u16, u16), _, _| -> Content {
-            let arg_parser = args_parser!(ValueTypes::Text(Default::default()));
-            let args_parsed = arg_parser.parse(args);
-            let text: TextType = unwrap_val!(args_parsed.first().unwrap(), Text);
+        |holder, _, args: Vec<ValueTypes>, parent_size: &(u16, u16), _, _| -> Content {
+            let text = unwrap_val!(args.first().unwrap(), Text);
             Content::new(
                 vec![Text::new(text.0.text.clone(), Color::Reset, Color::Reset)],
                 false,
@@ -27,5 +25,11 @@ pub static LABEL: LazyLock<Element> = LazyLock::new(|| {
             )
         },
         "label",
+        |_| args_parser!(
+            ValueTypes::Text(Default::default()),
+            ValueTypes::Config(ConfigType(config_preset!(
+
+            ), Default::default()))
+        ),
     )
 });
